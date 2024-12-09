@@ -23,7 +23,7 @@ YOLOV1 is a unified architecture , i.e., one stage detector.
 	- Directly make fixed number of predictions for multiple categories using a single network given the input image.
 	- Reduces complexity of detection pipeline introduced in two stage models.
 
-![alt text](/assets/papers/yolov1/YOLOV1-twostage_vs_onestage.png#dark#small "One Stage vs. Two Stage Models.")
+![alt text](/assets/papers/yolov1/YOLOV1-twostage_vs_onestage.png#dark#small, "")
 
 ## YOLO Object Detection Algorithm
 YOLOV1 frames object detection as a single stage regression problem. Input Image is passed to the YOLO CNN, and this network predicts multiple bounding boxes for the detected objects and class probabilities associated with these predicted bounding boxes in one evaluation.
