@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="An LSM Tree overview and Java implementation." />
+
+<title>
+    
+    YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/papers/yolov1/" />
+
+<meta property="og:url" content="http://localhost:1313/papers/yolov1/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection">
+  <meta property="og:description" content="An LSM Tree overview and Java implementation.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="papers">
+    <meta property="article:published_time" content="2024-12-03T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-12-03T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/papers/">Papers</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/papers/yolov1/">YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection</h1>
+    
+    <p class="single-summary">YOLO V1 Model Explained.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-12-03T00:00:00&#43;00:00">December 3, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      11 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#one-stage-vs-two-stage-detection">One Stage vs. Two Stage Detection</a></li>
+    <li><a href="#yolo-object-detection-algorithm">YOLO Object Detection Algorithm</a></li>
+    <li><a href="#yolo-box-predictions">YOLO Box Predictions</a>
+      <ul>
+        <li><a href="#detailed-explanations">Detailed Explanations</a></li>
+      </ul>
+    </li>
+    <li><a href="#yolo---grid-cell-level-predictions">YOLO - Grid Cell Level Predictions</a>
+      <ul>
+        <li><a href="#additional-details">Additional Details</a></li>
+      </ul>
+    </li>
+    <li><a href="#yolo-architecture">YOLO Architecture</a></li>
+    <li><a href="#yolo-loss">YOLO Loss</a>
+      <ul>
+        <li><a href="#localization-loss">Localization Loss</a></li>
+        <li><a href="#why-square-root-for-width-height">Why Square Root for Width, Height?</a></li>
+        <li><a href="#confidence-loss">Confidence Loss</a></li>
+        <li><a href="#classification-loss">Classification Loss</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <h2 id="one-stage-vs-two-stage-detection">One Stage vs. Two Stage Detection</h2>
+<p>YOLOV1 is a unified architecture , i.e., one stage detector.</p>
+<ul>
+<li>Two Stage Detection System
+<ul>
+<li>Stage 1: Predict candidate regions which possibly contain objects</li>
+<li>Stage 2: Classify these regions into appropriate categories and as well as regressing bounding boxes for the proposed regions to tightly fit the underlying object.</li>
+<li>Example: Faster RCNN (RPN for Stage 1, and Detection Head for Stage 2)</li>
+</ul>
+</li>
+<li>One Stage
+<ul>
+<li>Skip the Proposal Generation Step.</li>
+<li>Directly make fixed number of predictions for multiple categories using a single network given the input image.</li>
+<li>Reduces complexity of detection pipeline introduced in two stage models.</li>
+</ul>
+</li>
+</ul>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-twostage_vs_onestage.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> One Stage vs. Two Stage Models. </figcaption>
+    </div>
+    
+</figure></p>
+<h2 id="yolo-object-detection-algorithm">YOLO Object Detection Algorithm</h2>
+<p>YOLOV1 frames object detection as a single stage regression problem. Input Image is passed to the YOLO CNN, and this network predicts multiple bounding boxes for the detected objects and class probabilities associated with these predicted bounding boxes in one evaluation.</p>
+<ol>
+<li>Divide image into $S\times S$ grid cells covering the entire image. In the paper,  the authors use a value of $S=7$, i.e., dividing the image into a grid of $7\times 7$.     
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small,">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-dividing_image_into_sxs_gridcells.png#dark%23small,">
+    </div>
+
+    
+</figure></li>
+<li>Every target object is assigned to one grid cell that contains the <strong>center of the object</strong>. Given the ground truth bounding box, we find the cell which contains the center of the bbox and assign that to that specific object. In the image below, there are two objects - Person and Car. The centers of the ground truth bounding boxes for both the objects lies in grid cell 6 and 5, respectively.
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small,">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-gridcell_categorization.png#dark%23small,">
+    </div>
+
+    
+</figure></li>
+<li>Each grid cell predicts $B$ bounding boxes. For ease of visualization, we assume $B=1$. In the paper, $B=2$, i.e., 2 bounding boxes are predicted for each grid cell. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small,">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-bbox_preds_per_cell.png#dark%23small,">
+    </div>
+
+    
+</figure></li>
+<li>YOLO is trained to have box predictions of each cell as close as possible to the target assigned to that cell. In this image, for the cell which had a target assigned (<em>person: cell 6, car: cell 5</em>), we retain those prediction boxes and discard all others. Through training, the YOLO model will learn to have the predictions as close as possible to the ground truth boxes.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-retain_predictionbboxes_gridcell.png#dark%23small">
+    </div>
+
+    
+</figure></li>
+</ol>
+<h2 id="yolo-box-predictions">YOLO Box Predictions</h2>
+<p>Now we&rsquo;ll dive into the exact values that the model predicts for <strong>each bounding box</strong>. YOLO model predicts <strong>5 parameters for each of the bounding boxes</strong></p>
+<ul>
+<li>$c_x$: The x-coordinate of the center of the bounding box, relative to the bounds of the grid cell.</li>
+<li>$c_y$: The y-coordinate of the center of the bounding box, relative to the bounds of the grid cell.</li>
+<li>$w$: The width of the bounding box, relative to the entire image width.</li>
+<li>$h$: The height of the bounding box, relative to the entire image height.</li>
+<li><strong>Confidence</strong>: A scalar value representing the confidence that an object exists within the bounding box and that the bounding box accurately locates it.</li>
+</ul>
+<h3 id="detailed-explanations">Detailed Explanations</h3>
+<ol>
+<li>$c_x$ and $c_y$
+<ul>
+<li><strong>Relative to Grid Cell</strong>: YOLOv1 divides the input image into $S\times S$ grid (typically $S=7$). Each grid cell is responsible for detecting objects whose centers fall within it. They are the <strong>offset values</strong>, i.e., $x$-translation and $y$-translation from the top-left corner of the assigned grid cell. Offset values are used to denote center of the bounding box <strong>relative</strong> to the top left corner of the grid cell. These offset values will also be normalized between 0 and 1.</li>
+<li><strong>Normalization</strong>: The center coordinates $(x,y)$ are normalized between 0 and 1 within their grid cell. This means $(x,y) \in [0,1]$, where $(0,0)$ is the top-left corner of the grid cell and $(1,1)$ is the bottom-right corner of the grid cell.</li>
+</ul>
+</li>
+<li>$w$ and $h$
+<ul>
+<li><strong>Relative to Entire Image</strong>: The width and height are normalized by the total width and height of the image. This means $w,h \in [0,1]$</li>
+<li>$w=1$ indicates that the width of the bounding box extends across the entire width of the image. $h=1$ means that the height of the bounding box extends across the entire height of the image. Both $w=1, h=1$ indicates that the bounding box covers the entire image.</li>
+<li><strong>Square Root Transformation</strong>: In YOLOV1, the square root of the width and height is predicted to stabilize the learning process for varying object sizes.</li>
+</ul>
+</li>
+<li>Confidence
+<ul>
+<li><strong>Objectness Score</strong>: The confidence score reflects the <strong>probability that a bounding box contains an object</strong> and <strong>how accurate the bounding box is</strong>. It can be viewed as an estimate to how good the model&rsquo;s prediction is .It attempts to capture 2 aspects.
+<ul>
+<li>how confident the model is that the box indeed contains an object</li>
+<li>how accurate or good fit the predicted box is, for the object it contains.</li>
+</ul>
+</li>
+<li>Range: The confidence score is between 0 and 1.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-box_centroid_prediction.png#dark%23small">
+    </div>
+
+    
+</figure>
+In the image above, the red dot indicates the center of the bounding box for the &ldquo;car&rdquo; object. The $c_x,c_y$ value is relative to the top left corner of grid cell 5.</li>
+</ul>
+</li>
+</ol>
+<h2 id="yolo---grid-cell-level-predictions">YOLO - Grid Cell Level Predictions</h2>
+<p>At grid cell level, each grid cell has $5\times B$ predictions, i.e., each grid cell predicts $B$ bounding boxes. Each of those bounding boxes consists of $5$ parameters: $w, h, c_x, x_y, \text{conf}$.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-gridecell-predictions.png#dark%23small">
+    </div>
+
+    
+</figure>
+In addition to the above, the model also predicts <strong>class conditional probabilities</strong> for each grid cell. Each grid cell will have $(5\times B)+C$ values. For the PascalVOC dataset with 20 classes, each grid cell will predict $(2\times 2) + 20 = 30$ values.
+For each of the $S\times S$ grid cell, we&rsquo;ll be predicting 30 values, i.e., 10 values for the $B=2$ bounding boxes and $20$ class conditional probabilities. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-gridcell_level_predictions.png#dark%23small">
+    </div>
+
+    
+</figure>
+For each grid cell, YOLO predicts one set of class probabilities as we can see in the above image. YOLO will predict multiple boxes $(B&gt;1)$ per grid cell,  but only one predictor box is responsible for that target, the one bounding box with highest IOU with the target box. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-30predictions.png#dark%23small">
+    </div>
+
+    
+</figure></p>
+<blockquote>
+<p>In this image, for grid cell 5, the model predicts 20 class conditional probabilities (<em>distribution over all the classes [VOC DATASET HAS 20 GROUND TRUTH CLASSES] given the detection object</em>) and 10 bounding box predictions.</p>
+</blockquote>
+<h3 id="additional-details">Additional Details</h3>
+<ul>
+<li>For each grid cell, YOLO predicts only a <strong>single set</strong> of class probabilities no matter what the value of $B$ is.</li>
+<li>YOLO will predict multiple bounding boxes $(B&gt;1)$ per grid cell, but only one predictor box is responsible for that target, the one with highest IOU with the target box (<em>ground truth box</em>). 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-multiplebboxpredictions.png#dark%23small">
+    </div>
+
+    
+</figure>
+In the above image the bounding boxes with the highest IOUs are stored whereas the rest of them are discarded.</li>
+</ul>
+<blockquote>
+<p>From the paper: &ldquo;YOLO predicts multiple bounding boxes per grid cell. At training time we only want one bounding box predictor to be responsible for each object. We assign one predictor to be &ldquo;responsible&rdquo; for predicting an object based on which prediction has the highest IOU with the ground truth. This leads to specialization between bounding box predictors. Each predictor gets better at predicting certain sizes, aspect ratios, or classes of object, improving overall recall.&rdquo;</p>
+</blockquote>
+<p>Localization Loss is calculated for the &ldquo;responsible&rdquo; predictor.</p>
+<ul>
+<li>&ldquo;<em><strong>predictors</strong></em>&rdquo;: represents the outputs associated with a specific bounding box prediction. In code, predictors are represented by slices of the output tensor. It can be accessed by indexing into the output tensor after reshaping. Each predictor outputs <code>(x, y, w, h, confidence)</code>.</li>
+</ul>
+<h2 id="yolo-architecture">YOLO Architecture</h2>
+<p>Given an image, the model outputs a value of the dimensionality $S\times S \times ((5\times B) + C)$. This is transformed into a $S\times S$ grid with $((5\times B) + C)$ channels as seen in the image below. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-modeloutput.png#dark%23small">
+    </div>
+
+    
+</figure>
+If $S=3, B=2$ and $C=20$ (<em>number of classes</em>), this CNN will return prediction values which can be transformed into a $3\times 3$ grid output with $(5\times B) + C$ channels. Each output cell (<em>each cell in the $S\times S$ grid</em>) is going to have $(5\times B) + C$ values, i.e., bounding box predictions plus conditional class probability distribution.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-modelpredictionoverview.png#dark%23small">
+    </div>
+
+    
+</figure>
+For the model architecture, the authors utilize a custom version of the GoogleNet architecture. Instead of the Inception Module, they replace it with $1\times 1$ and $3\times 3$ convolutional layers. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-modelarchitecture-customgooglenetvariant.png#dark%23small">
+    </div>
+
+    
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-modelarchitecture-customgooglenetvariant2.png#dark%23small">
+    </div>
+
+    
+</figure>
+The authors first pre-train this network on the ImageNet classification task by stacking FC layers and training it on images of dimensionality $224\times 224$. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-architecture-imagenet-pretraining.png#dark%23small">
+    </div>
+
+    
+</figure>
+Post-training, they get rid of the FC layers, and add additional convolutional layers prior to model detection training (<em>specifically 4 convolutional layers</em>). After these convolutional layers, we have 2 FC layers to predict the $S\times S \times (5\times B + C)$ dimensional tensor.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-architecture.png#dark%23small">
+    </div>
+
+    
+</figure>
+The final detection network looks as follows: 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-architecture_postpretraining.png#dark%23small">
+    </div>
+
+    
+</figure>
+The convolutional layers in the red box denote the additional layers that were added to the pretrained network (<em>network trained on ImageNet classification task</em>). The input to this architecture has the dimensionality of $448\times 448$ instead of $224\times 224$ for fine grained visual information. The model outputs a tensor of dimensionality $7\times 7 \times 30$. For the VOC dataset, each cell (<em>in the grid cell</em>) will have 30 prediction values.</p>
+<h2 id="yolo-loss">YOLO Loss</h2>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-lossfunctions.png#dark%23small">
+    </div>
+
+    
+</figure>
+The YOLOv1 loss function combines multiple components to penalize errors in</p>
+<ol>
+<li><strong>Localization Loss</strong>: Predicting the bounding box coordinates (<em>x, y offsets from the top-left corner of the grid cell</em>) accurately (<em>whether the model has generated correct bounding box coordinates</em>)</li>
+<li><strong>Confidence Score</strong>: Estimating the likelihood that a predicted box contains an object (<em>whether the predicted bounding box contains an object or not</em>)</li>
+<li><strong>Classification</strong>: Correctly classifying the object within the bounding box (<em>whether the object inside the predicted bounding box is correctly classified</em>)
+It can be represented as $$
+\begin{aligned}\text{Loss} &amp; =\lambda_\mathrm{coord}\sum_{i=0}^{S^2} \sum_{j=0}^B 1_\mathrm{obj}^{ij} \left[(x_i-\hat{x}_i)^2+(y_i-\hat{y}_i)^2\right] \\
+&amp; +\lambda_\mathrm{coord~}\sum_{i=0}^{S^2} \sum_{j=0}^B1_\mathrm{obj}^{ij} \left[(\sqrt{w_i}-\sqrt{\hat{w_i}})^2+(\sqrt{h_i}-\sqrt{\hat{h_i}})^2\right] \\
+&amp; +\sum_{i=0}^{S^2}\sum_{j=0}^B1_{\mathrm{obj}}^{ij}(C_i-\hat{C}_i)^2 \\
+&amp; +\lambda_\mathrm{noobj}\sum_{i=0}^{S^2}\sum_{j=0}^B1_\mathrm{noobj}^{ij}(C_i-\hat{C}_i)^2 \\
+&amp; +\sum_{i=0}^{S^2}1_{\mathrm{obj}}^i\sum_{c\in\mathrm{classes}}(p_i(c)-\hat{p}_i(c))^2
+\end{aligned}$$</li>
+</ol>
+<ul>
+<li>$S$: Grid Size (<em>number of cells along one dimension, e.g., $S=7$</em>)</li>
+<li>$B$: Number of Bounding boxes predicted per grid cell. (e.g., $B=2$)</li>
+<li>$\lambda_\text{coord}$: Weighting term for localization loss (<em>typically set to 5</em>)</li>
+<li>$\lambda_\text{noobj}$: Weighting term for confidence loss when no object is present (<em>typically set to 0.5</em>)</li>
+<li>$1^{i,j}_{\text{obj}}$: Indicator function equal to 1 if object appears in cell $i$ and predictor $j$ is responsible for the prediction.</li>
+<li>$1^{i,j}_{\text{noobj}}$: Indicator function equal to 1 if no object is present in cell $i$ for predictor $j$.</li>
+<li>$(x_i, y_i)$: Ground truth center coordinates of the bounding box, relative to the grid cell</li>
+<li>$(\hat{x_i}, \hat{y_i})$: Predicted center coordinates.</li>
+<li>$(w_i, h_i)$: Ground truth width and height, normalized by image dimensions</li>
+<li>$(\hat{w}_i, \hat{h}_i)$: Predicted width and height</li>
+<li>$C_i$: Ground truth confidence score (<em>usually 1 if object is present</em>)</li>
+<li>$\hat{C}_i$: Predicted Confidence score</li>
+<li>$p_i(c)$: Ground truth probability of class $c$ in cell $i$</li>
+<li>$\hat{p}_i(c)$: Predicted probability of class $c$ in cell $i$</li>
+</ul>
+<h3 id="localization-loss">Localization Loss</h3>
+<p>$$ \begin{aligned} \text{Localization Loss}&amp;=\lambda_\mathrm{coord}\sum_{i=0}^{S^2} \sum_{j=0}^B 1_\mathrm{obj}^{ij} \left[(x_i-\hat{x}_i)^2+(y_i-\hat{y}_i)^2\right] \\ &amp; +\lambda_\mathrm{coord~}\sum_{i=0}^{S^2}  \sum_{j=0}^B1_\mathrm{obj}^{ij} \left[(\sqrt{w_i}-\sqrt{\hat{w_i}})^2+(\sqrt{h_i}-\sqrt{\hat{h_i}})^2\right]
+\end{aligned}
+$$
+This loss penalizes the model when the predicted bounding box coordinates deviate from the ground truth bounding box coordinates. The components of this loss are as follows:</p>
+<ol>
+<li>Coordinate Error
+<ul>
+<li>$(x_i - \hat{x}_i)^2$: Error in $x$-coordinate</li>
+<li>$(y_i - \hat{y}_i)^2$: Error in $y$-coordinate</li>
+</ul>
+</li>
+<li>Size Errors (with Square Root)
+<ul>
+<li>$(\sqrt{w_i} - \sqrt{\hat{w}}_i)^2$: Error in the width.</li>
+<li>$(\sqrt{h_i} - \sqrt{\hat{h}}_i)^2$: Error in the height.</li>
+</ul>
+</li>
+</ol>
+<p>We only want to calculate this loss for boxes which are responsible for some target ground truth and ignore the rest. This sum would be over the predicted boxes of cells assigned with some target that has maximum IOU with the target box. The indicator function filters only those boxes. $1_\mathrm{obj}^{ij}$ is 1 if a cell $i$ is assigned a target and box $j$ is responsible for that target.</p>
+<p>The reason we use <strong>square roots</strong> of width and height balances the loss between large and small boxes, preventing dominance of large errors due to large objects.</p>
+<blockquote>
+<p>$1^{i,j}_{\text{obj}}$ ensures that the loss is calculated only for the predictor responsible for the object in that grid cell.</p>
+</blockquote>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-widthheight_squareroot.png#dark%23small">
+    </div>
+
+    
+</figure></p>
+<h3 id="why-square-root-for-width-height">Why Square Root for Width, Height?</h3>
+<p>Let us consider a hypothetical example where all our predicted height and width parameters are off from their target by an offset of $0.1$. Not using square root for width and height difference computation is detrimental when computing bound box offset for small objects. MSE with square root penalizes small bounding boxes offsets higher than large bounding box offsets
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-widthheight_squareroot_why.png#dark%23small">
+    </div>
+
+    
+</figure></p>
+<blockquote>
+<p>Small deviations on large boxes matter much less than small deviations on small boxes.</p>
+</blockquote>
+<h3 id="confidence-loss">Confidence Loss</h3>
+<p>The confidence loss is as follows; $$ \begin{aligned} \text{Confidence Loss} &amp;= \sum_{i=0}^{S^2}\sum_{j=0}^B1_{\mathrm{obj}}^{ij}(C_i-\hat{C}_i)^2 \\
+&amp;+\lambda_\mathrm{noobj}\sum_{i=0}^{S^2}\sum_{j=0}^B1_\mathrm{noobj}^{ij}(C_i-\hat{C}_i)^2  \end{aligned}$$This loss penalizes the model for incorrect confidence scores. The components of this loss are as follows:</p>
+<ol>
+<li>Object Present $(1^{i,j}_{\text{obj}})$:
+<ul>
+<li>$(C_i - \hat{C}_i)^2$: Error in the confidence score when an object is present.</li>
+</ul>
+</li>
+<li>No Object Present $(1^{i,j}_{\text{noobj}})$:
+<ul>
+<li>$(C_i - \hat{C}_i)^2$: Error in the confidence score when no object is present.</li>
+<li>Weighted by $\lambda_{\text{noobj}}$ to reduce the impact of many background boxes</li>
+</ul>
+</li>
+</ol>
+<p>Confidence Scores $\hat{C}_i$ quantifies two things</p>
+<ol>
+<li>confidence of the model that the box indeed contains an object</li>
+<li>how accurate or good fit the predicted box is, for the object is contains.
+Ideally, $\hat{C}_i$ should be high when an object is present and low when its not.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-confidenceloss.png#dark%23small">
+    </div>
+
+    
+</figure>
+For all no object boxes, the confidence scores are calculated as follows: $$ \text{Pr(Object)} * \text{IOU}_{\text{truth}}^{\text{pred}} $$</li>
+</ol>
+<p>We want to ensure that the confidence of the responsible predictor boxes are closer to their target values. In addition, we also train the model to predict the confidence scores of boxes which are not assigned to any target object as 0. The second term takes care of that.</p>
+<h3 id="classification-loss">Classification Loss</h3>
+<p>The classification loss is as follows: $$ \text{Classification Loss = } \sum_{i=0}^{S^2}1_{\mathrm{obj}}^i\sum_{c\in\mathrm{classes}}(p_i(c)-\hat{p}_i(c))^2 $$This loss penalizes the model when it incorrectly predicts the class of the object. The components of this loss function are as follows:</p>
+<ul>
+<li>$(p_i(c) - \hat{p}_i(c))^2$ denotes the error in predicted class probabilities.</li>
+<li>Calculated for each class $c$ and only in grid cells where an object is present, i.e., $1^{i,j}_{\text{obj}}$</li>
+</ul>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-combined_loss.png#dark%23small">
+    </div>
+
+    
+</figure></p>
+<ul>
+<li>For most of the images we would only have few cells that would be assigned with some target and a lot of background cells. This would cause the gradient from confidence score of boxes with no objects overpower those gradients produced by the term in the loss function that contains the objects. To mitigate this, and to add more preference to the localization error instead of classification error we use 2 terms: $\lambda_{\text{coord}}$ and $\lambda_{\text{noobj}}$. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/yolov1/YOLOV1-loss_with_labels.png#dark%23small">
+    </div>
+
+    
+</figure></li>
+</ul>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/papers/wideresnet/">
+                        WideResNet Explained
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

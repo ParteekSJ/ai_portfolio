@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="This blog discusses about different types of normalization used in deep learning." />
+
+<title>
+    
+    ELBO: Evidence Lower Bound Optimization | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/posts/elbo/" />
+
+<meta property="og:url" content="http://localhost:1313/posts/elbo/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="ELBO: Evidence Lower Bound Optimization">
+  <meta property="og:description" content="This blog discusses about different types of normalization used in deep learning.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-10-22T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-10-22T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/posts/">Posts</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/posts/elbo/">ELBO: Evidence Lower Bound Optimization</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">ELBO: Evidence Lower Bound Optimization</h1>
+    
+    <p class="single-summary">ELBO Derivation.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-10-22T00:00:00&#43;00:00">October 22, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      8 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#problem">Problem</a></li>
+    <li><a href="#solution-approximate-pzx-using-a-surrogate-posterior">Solution: Approximate <code>p(z|x)</code> using a Surrogate Posterior</a></li>
+    <li><a href="#derivation-of-elbo">Derivation of ELBO</a></li>
+    <li><a href="#code-example">Code Example</a></li>
+    <li><a href="#connecting-back-to-elbo-derivation">Connecting Back to ELBO Derivation</a>
+      <ul>
+        <li><a href="#notes">Notes</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <h2 id="problem">Problem</h2>
+<p>Suppose we&rsquo;re working with the posterior distribution over latent variable, i.e., $p(\mathbf{z}|\mathbf{x}=\mathcal{D})$. In practice, we do not have access to a closed form solution for $p(\mathbf{z}|\mathbf{x}=\mathcal{D})$, especially in high-dimensional observed spaces. Therefore, we approximate the posterior distribution $p(\mathbf{z}|\mathbf{x}=\mathcal{D})$ via a surrogate distribution $q(\mathbf{z}|\mathbf{x}=\mathcal{D})$.</p>
+<p>We consider Directed Graphical Models with observed variables $\mathbf{x} \in \mathbb{R}^N$ and latent variable $\mathbf{z} \in \mathbb{R}^D$ where $D \ll N$.</p>
+<p>If we have access to the DGM, we also have access to the joint distribution $p(\mathbf{x}, \mathbf{z})$ where $\mathbf{x}$ denotes images, and $\mathbf{z}$ denotes latent variables such as camera angles, or some property within the image not directly visible. Joint distribution can be defined as follows: $$ p(\mathbf{x},\mathbf{z}) = p(\mathbf{x}|\mathbf{z}) p(\mathbf{z}) $$We observe $\mathbf{x}$ as the dataset $\mathcal{D}={x^{(i)}}_{i=1}^N$ (<em>images</em>). Given this, we want to perform variational inference in order to learn more about the latent variables The posterior distribution of the latent variable $\mathbf{z}$ given the observed data point $\mathbf{x}$ is as follows, $$ p(\mathbf{z}|\mathbf{x}=\mathcal{D}) = \frac{p(\mathbf{x}=\mathcal{D}|\mathbf{z}) p(\mathbf{z})}{p(\mathbf{x}=\mathcal{D})} $$The problem in this formulation is the <strong>denominator</strong> term, i.e., the marginal likelihood $p(\mathbf{x}=\mathcal{D})$ which involves integrating over all possible latent variables $\mathbf{z}$.</p>
+<p>The marginal likelihood over a single data point is $\mathbf{x}$ is $p(\mathbf{x}) = \int p(\mathbf{x}, \mathbf{z}) , d\mathbf{z}$. For the entire dataset $\mathcal{D}$, the marginal likelihood is $$ p(\mathbf{x}=\mathcal{D}) = \int_{\mathbf{z}} p(\mathbf{x}, \mathbf{z}) d\mathbf{z} $$However, this integration is intractable/incomputable.</p>
+<h2 id="solution-approximate-pzx-using-a-surrogate-posterior">Solution: Approximate <code>p(z|x)</code> using a Surrogate Posterior</h2>
+<p>Instead, we approximate $p(\mathbf{z}|\mathbf{x})$ with a variational distribution $q(\mathbf{z}|\mathbf{x})$. The term &ldquo;<em><strong>variational</strong></em>&rdquo; comes from variational calculus, as we optimize over a function to perform inference.</p>
+<p>To optimize, we need a loss function that returns us the <strong>goodness of the fit</strong>. We use <strong>KL divergence</strong> for this task as it helps express the dissimilarity between two distributions.
+$$ q^*(\mathbf{z}) = {\arg\min}_{q(\mathbf{z})\in\mathcal{Q}} [KL(q(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}|\mathbf{x}) ]$$
+The KL divergence can be defined as follows: $$ KL(q(\mathbf{z} | \mathbf{x}) | p(\mathbf{z}|\mathbf{x})) = \mathbb{E}_{q(\mathbf{z}|\mathbf{x})} \left[  \log \frac{q(\mathbf{z}|\mathbf{x})}{p(\mathbf{z}|\mathbf{x})} \right] $$Higher this value, further apart the two distributions are. It simply is the expected log likelihood ratio of the two distributions. Here, we&rsquo;re using <strong>REVERSE KL DIVERGENCE</strong>.</p>
+<p>However, we cannot compute $p(\mathbf{z}|\mathbf{x})$ due to the intractable marginal likelihood $p(\mathbf{x})$. Instead, we derive a lower bound on $\log p(x)$, known as the <strong>Evidence Lower Bound (ELBO)</strong>.</p>
+<p>In the above formulation, we do not have the posterior $p(\mathbf{z}|\mathbf{x})$. All we have is the joint distribution $p(\mathbf{z},\mathbf{x})$, i.e., $$ p(\mathbf{z}|\mathbf{x}) = \frac{p(\mathbf{x},\mathbf{z})}{p(\mathbf{x})} =  \frac{p(\mathbf{x} | \mathbf{z}) p(\mathbf{z})}{p(\mathbf{x})} $$</p>
+<h2 id="derivation-of-elbo">Derivation of ELBO</h2>
+<p>Starting with the KL Divergence; $$ \begin{gather*}
+\mathrm{KL}\left(q(\mathbf{z}|\mathbf{x})\parallel p(\mathbf{z}|\mathbf{x})\right)  =\int q(\mathbf{z}|\mathbf{x})\log\left(\frac{q(\mathbf{z}|\mathbf{x})}{p(\mathbf{z}|\mathbf{x})}\right)d\mathbf{z} \\
+=\int q(\mathbf{z}|\mathbf{x})\left(\log q(\mathbf{z}|\mathbf{x})-\log p(\mathbf{z}|\mathbf{x})\right)d\mathbf{z}
+\end{gather*} $$
+Since $p(\mathbf{z}|\mathbf{x}) = p(\mathbf{x},\mathbf{z}) / p(\mathbf{x})$, $$ \begin{gather*}
+\mathrm{KL}\left(q(\mathbf{z}|\mathbf{x})\parallel p(\mathbf{z}|\mathbf{x})\right) =\int q(\mathbf{z}|\mathbf{x})\left(\log q(\mathbf{z}|\mathbf{x})-\log\frac{p(\mathbf{x},\mathbf{z})}{p(\mathbf{x})}\right)d\mathbf{z} \\
+=\int q(\mathbf{z}|\mathbf{x})\left(\log q(\mathbf{z}|\mathbf{x})-\log p(\mathbf{x},\mathbf{z})+\log p(\mathbf{x})\right)d\mathbf{z}
+\end{gather*} $$Since $\log p(\mathbf{x})$ doesn&rsquo;t depend on $\mathbf{z}$, we have  $$ \begin{gather*}
+\mathrm{KL}\left(q(\mathbf{z}|\mathbf{x})\parallel p(\mathbf{z}|\mathbf{x})\right)=\int q(\mathbf{z}|\mathbf{x})\left(\log q(\mathbf{z}|\mathbf{x})-\log p(\mathbf{x},\mathbf{z})\right)d\mathbf{z}+\log p(\mathbf{x})\int q(\mathbf{z}|\mathbf{x})d\boldsymbol{z} \\
+=\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\log q(\mathbf{z}|\mathbf{x})-\log p(\mathbf{x},\mathbf{z})\right]+\log p(\mathbf{x})
+\end{gather*} $$Since $\mathbb{E}_{\mathbf{z} \in q(\mathbf{z}|\mathbf{x})} =  \int q(\mathbf{z}|\mathbf{x})d\boldsymbol{z} = 1$, the integration simplifies.</p>
+<ul>
+<li>we know how to compute $q(\mathbf{z}|\mathbf{x})$ since we know the functional form of the surrogate function.</li>
+<li>we also know $p(\mathbf{x}, \mathbf{z})$, i.e., encoder output. It is calculated as: $p(\mathbf{z}|\mathbf{x}) p(\mathbf{x})$.</li>
+</ul>
+<p>Let us define the ELBO as follows: $$ \mathcal{L}(q)=\mathbb{E}_{q(\mathbf{z}|\mathbf{x})}\left[\log p(\mathbf{x},\mathbf{z})-\log q(\mathbf{z}|\mathbf{x})\right]$$Rewriting the KL divergence,
+$$ \mathrm{KL}\left(q(\mathbf{z}|\mathbf{x})\parallel p(\mathbf{z}|\mathbf{x})\right)=-\mathcal{L}(q)+\log p(\mathbf{x}) $$
+Here, $p(\mathbf{x})$ is the marginal distribution.
+Applying $\log$ to the marginal distribution $p(\mathbf{x})$ yields the <strong>evidence</strong>. It is called evidence since it is the log-probability of the data.  If $\log$ is applied to a quantity that is between 0 and 1, we get values $\leq 0$, i.e., $[-\infty, 0]$. We have no ways of computing $p(\mathbf{x})$.</p>
+<p>Since the KL Divergence $\mathrm{KL}\left(q(\mathbf{z}|\mathbf{x})\parallel p(\mathbf{z}|\mathbf{x})\right)$ is non-negative, and the evidence $\log p(\mathbf{x})$ is $\leq 0$ we have $$ \mathcal{L}(q) \leq \log p(\mathbf{x}) $$
+This inequality shows that $\mathcal{L}(q)$ is a lower bound on the log evidence $\log p(\mathbf{x})$, hence the name <strong>Evidence Lower Bound (ELBO)</strong>. The ELBO is always smaller than the evidence.</p>
+<p>Our optimization task becomes $$ q^*(\mathbf{z}|\mathbf{x}) =\arg\max_{q(\mathbf{z}|\mathbf{x}) \in\mathcal{Q}}\mathcal{L}(q) $$We can also arrange the equation to express $\log p(\mathbf{x})$: $$ \log p(\mathbf{x})=\mathcal{L}(q)+\mathrm{KL}\left(q(\mathbf{z}|\mathbf{x})\parallel p(\mathbf{z}|\mathbf{x})\right)$$</p>
+<blockquote>
+<p>Since the KL divergence is non-negative, maximizing $\mathcal{L}(q)$ minimizes the KL divergence between the $q(\mathbf{z}|\mathbf{x})$ and $p(\mathbf{z}|\mathbf{x})$,</p>
+</blockquote>
+<p>$\mathcal{L}(q) =\log p(\mathbf{x}) \iff KL(q(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}|\mathbf{x}))=0$, i.e., the surrogate distribution &amp; the true posterior are the same. This is usually not achieved in variational inference. The best fit is computed by finding a $q$ that maximizes the ELBO, i.e., $\arg\max_{q(\mathbf{z}|\mathbf{x}) \in\mathcal{Q}}\mathcal{L}(q)$</p>
+<h2 id="code-example">Code Example</h2>
+<p>We&rsquo;ll be using a Variational Auto Encoder to provide a code-based explanation of ELBO.</p>
+<p>The encoder network approximates the surrogate distribution $q(\mathbf{z}|\mathbf{x}) \approx p(\mathbf{z}|\mathbf{x})$.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#177500"># The encoder network approximates the posterior q(z|x)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Encoder</span>(<span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Module</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">__init__</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">input_dim</span>, <span style="color:#000">hidden_dim</span>, <span style="color:#000">latent_dim</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">super</span>(<span style="color:#000">Encoder</span>, <span style="color:#5b269a">self</span>)<span style="color:#000">.</span><span style="color:#000">__init__</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Input layer to hidden layer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc1</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">input_dim</span>, <span style="color:#000">hidden_dim</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Hidden layer to mean of q(z|x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc_mu</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">hidden_dim</span>, <span style="color:#000">latent_dim</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Hidden layer to log variance of q(z|x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc_logvar</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">hidden_dim</span>, <span style="color:#000">latent_dim</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">forward</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">x</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#c41a16">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">        Forward pass through the encoder to obtain parameters of q(z|x),
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">        which is a Gaussian distribution with mean mu and variance sigma^2.
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">h</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">relu</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc1</span>(<span style="color:#000">x</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#000">mu</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc_mu</span>(<span style="color:#000">h</span>)         <span style="color:#177500"># Mean of q(z|x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">log_var</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc_logvar</span>(<span style="color:#000">h</span>)  <span style="color:#177500"># Log variance of q(z|x)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">mu</span>, <span style="color:#000">log_var</span>
+</span></span></code></pre></div><p>The re-parameterization trick relates to sampling $\mathbf{z}$ from the surrogate distribution $q(\mathbf{z}|\mathbf{x})$, i.e., $\mathbf{z}\sim q(\mathbf{z}|\mathbf{x})$ for the expectation $\mathbb{E}_{q(\mathbf{z})}$. Via the code we get the mean $\mu$ and the log variance $\log \sigma$. These values are used to sample points from the &ldquo;<em>learned</em>&rdquo; latent space.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">def</span> <span style="color:#000">reparameterize</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">mu</span>, <span style="color:#000">log_var</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#c41a16">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    Reparameterization trick to sample z ~ q(z|x).
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    Instead of sampling z ~ N(mu, sigma^2), we sample eps ~ N(0,1) and 
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    compute z = mu + sigma * eps.
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    This allows backpropagation through stochastic nodes.
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">std</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">exp</span>(<span style="color:#1c01ce">0.5</span> <span style="color:#000">*</span> <span style="color:#000">log_var</span>)  <span style="color:#177500"># Standard deviation</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">eps</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">randn_like</span>(<span style="color:#000">std</span>)     <span style="color:#177500"># Sample from standard normal</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">z</span> <span style="color:#000">=</span> <span style="color:#000">mu</span> <span style="color:#000">+</span> <span style="color:#000">eps</span> <span style="color:#000">*</span> <span style="color:#000">std</span>              <span style="color:#177500"># Reparameterize</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">return</span> <span style="color:#000">z</span>
+</span></span></code></pre></div><p>The decoder relates to sampling $p(\mathbf{x}|\mathbf{z})$ in the joint distribution $p(\mathbf{x}, \mathbf{z}) = p(\mathbf{x}|\mathbf{z})p(\mathbf{z})$</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#177500"># The decoder network models the likelihood p(x|z)</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">Decoder</span>(<span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Module</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">__init__</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">latent_dim</span>, <span style="color:#000">hidden_dim</span>, <span style="color:#000">output_dim</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">super</span>(<span style="color:#000">Decoder</span>, <span style="color:#5b269a">self</span>)<span style="color:#000">.</span><span style="color:#000">__init__</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Latent space to hidden layer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc1</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">latent_dim</span>, <span style="color:#000">hidden_dim</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Hidden layer to output layer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc2</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">hidden_dim</span>, <span style="color:#000">output_dim</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">forward</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">z</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#c41a16">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">        Forward pass through the decoder to obtain p(x|z).
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">        &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">h</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">relu</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc1</span>(<span style="color:#000">z</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Output probabilities for Bernoulli likelihood</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_recon</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">sigmoid</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc2</span>(<span style="color:#000">h</span>))  
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">x_recon</span>
+</span></span></code></pre></div><p>ELBO Computation</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">def</span> <span style="color:#000">compute_elbo</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">x</span>, <span style="color:#000">x_recon</span>, <span style="color:#000">mu</span>, <span style="color:#000">log_var</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#c41a16">&#34;&#34;&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    Compute the Evidence Lower BOund (ELBO).
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    ELBO = E_q(z|x)[log p(x|z)] - KL(q(z|x) || p(z))
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    The ELBO consists of:
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    1. Reconstruction loss: negative expected log-likelihood E_q(z|x)[log p(x|z)]
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    2. KL divergence between q(z|x) and the prior p(z)
+</span></span></span><span style="display:flex;"><span><span style="color:#c41a16">    &#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Reconstruction loss (Negative Log-Likelihood)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Using Binary Cross Entropy Loss for Bernoulli likelihood p(x|z)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">recon_loss</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">binary_cross_entropy</span>(<span style="color:#000">x_recon</span>, <span style="color:#000">x</span>, <span style="color:#000">reduction</span><span style="color:#000">=</span><span style="color:#c41a16">&#39;sum&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># KL Divergence between q(z|x) and p(z)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># For multivariate Gaussians, KL divergence has an analytical solution:</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># KL(q(z|x) || p(z)) = 0.5 * sum( exp(log_var) + mu^2 - 1 - log_var )</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">kl_divergence</span> <span style="color:#000">=</span> <span style="color:#000">-</span><span style="color:#1c01ce">0.5</span> <span style="color:#000">*</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">sum</span>(<span style="color:#1c01ce">1</span> <span style="color:#000">+</span> <span style="color:#000">log_var</span> <span style="color:#000">-</span> <span style="color:#000">mu</span><span style="color:#000">.</span><span style="color:#000">pow</span>(<span style="color:#1c01ce">2</span>) <span style="color:#000">-</span> <span style="color:#000">log_var</span><span style="color:#000">.</span><span style="color:#000">exp</span>())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># ELBO is the negative of the sum of reconstruction loss and KL divergence</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># ELBO = E_q(z|x)[log p(x|z)] - KL(q(z|x) || p(z))</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">elbo</span> <span style="color:#000">=</span> <span style="color:#000">-</span> (<span style="color:#000">recon_loss</span> <span style="color:#000">+</span> <span style="color:#000">kl_divergence</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">return</span> <span style="color:#000">elbo</span>, <span style="color:#000">recon_loss</span>, <span style="color:#000">kl_divergence</span>
+</span></span></code></pre></div><ul>
+<li>The ELBO here is $\mathcal{L}(q)=\mathbb{E}_{q(\mathbf{z})}[\log p(\mathbf{x}, \mathbf{z}) - \log q(\mathbf{z})]$.</li>
+<li>The reconstruction term <code>recon_loss</code> corresponds to $\mathbb{E}_{q(\mathbf{z})} [\log p(\mathbf{x}|\mathbf{z})]$.</li>
+<li>The KL divergence term corresponds to $\mathbb{E}_{q(\mathbf{z})}[\log q(\mathbf{z}) - \log p(\mathbf{z})]$</li>
+</ul>
+<p>The training loop is as follows</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#177500"># Hyperparameters</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">input_dim</span> <span style="color:#000">=</span> <span style="color:#1c01ce">28</span> <span style="color:#000">*</span> <span style="color:#1c01ce">28</span>  <span style="color:#177500"># For MNIST images</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">hidden_dim</span> <span style="color:#000">=</span> <span style="color:#1c01ce">400</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">latent_dim</span> <span style="color:#000">=</span> <span style="color:#1c01ce">20</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">batch_size</span> <span style="color:#000">=</span> <span style="color:#1c01ce">128</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">learning_rate</span> <span style="color:#000">=</span> <span style="color:#1c01ce">1e-3</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">num_epochs</span> <span style="color:#000">=</span> <span style="color:#1c01ce">50</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Transformations for the MNIST dataset</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">transform</span> <span style="color:#000">=</span> <span style="color:#000">transforms</span><span style="color:#000">.</span><span style="color:#000">Compose</span>(
+</span></span><span style="display:flex;"><span>    [
+</span></span><span style="display:flex;"><span>        <span style="color:#000">transforms</span><span style="color:#000">.</span><span style="color:#000">ToTensor</span>(),  <span style="color:#177500"># Convert images to PyTorch tensors</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">transforms</span><span style="color:#000">.</span><span style="color:#000">Lambda</span>(<span style="color:#a90d91">lambda</span> <span style="color:#000">x</span>: <span style="color:#000">x</span><span style="color:#000">.</span><span style="color:#000">view</span>(<span style="color:#000">-</span><span style="color:#1c01ce">1</span>)),  <span style="color:#177500"># Flatten the images</span>
+</span></span><span style="display:flex;"><span>    ]
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Load the MNIST dataset</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">train_dataset</span> <span style="color:#000">=</span> <span style="color:#000">datasets</span><span style="color:#000">.</span><span style="color:#000">MNIST</span>(<span style="color:#000">root</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;./data&#34;</span>, <span style="color:#000">train</span><span style="color:#000">=</span><span style="color:#a90d91">True</span>, <span style="color:#000">transform</span><span style="color:#000">=</span><span style="color:#000">transform</span>, <span style="color:#000">download</span><span style="color:#000">=</span><span style="color:#a90d91">True</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">dataloader</span> <span style="color:#000">=</span> <span style="color:#000">DataLoader</span>(<span style="color:#000">train_dataset</span>, <span style="color:#000">batch_size</span><span style="color:#000">=</span><span style="color:#000">batch_size</span>, <span style="color:#000">shuffle</span><span style="color:#000">=</span><span style="color:#a90d91">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Instantiate the VAE model and move it to the device</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">vae</span> <span style="color:#000">=</span> <span style="color:#000">VAE</span>(<span style="color:#000">input_dim</span>, <span style="color:#000">hidden_dim</span>, <span style="color:#000">latent_dim</span>)<span style="color:#000">.</span><span style="color:#000">to</span>(<span style="color:#000">device</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Define the optimizer</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">optimizer</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">optim</span><span style="color:#000">.</span><span style="color:#000">Adam</span>(<span style="color:#000">vae</span><span style="color:#000">.</span><span style="color:#000">parameters</span>(), <span style="color:#000">lr</span><span style="color:#000">=</span><span style="color:#000">learning_rate</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Create a directory to save the model checkpoints</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">checkpoint_dir</span> <span style="color:#000">=</span> <span style="color:#c41a16">&#34;./vae_checkpoints&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">os</span><span style="color:#000">.</span><span style="color:#000">makedirs</span>(<span style="color:#000">checkpoint_dir</span>, <span style="color:#000">exist_ok</span><span style="color:#000">=</span><span style="color:#a90d91">True</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">checkpoint_path</span> <span style="color:#000">=</span> <span style="color:#000">os</span><span style="color:#000">.</span><span style="color:#000">path</span><span style="color:#000">.</span><span style="color:#000">join</span>(<span style="color:#000">checkpoint_dir</span>, <span style="color:#c41a16">&#34;vae_mnist.pth&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Training loop</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">for</span> <span style="color:#000">epoch</span> <span style="color:#000">in</span> <span style="color:#a90d91">range</span>(<span style="color:#000">num_epochs</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#000">vae</span><span style="color:#000">.</span><span style="color:#000">train</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#000">total_loss</span> <span style="color:#000">=</span> <span style="color:#1c01ce">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">for</span> <span style="color:#000">batch_idx</span>, (<span style="color:#000">x_batch</span>, <span style="color:#000">_</span>) <span style="color:#000">in</span> <span style="color:#a90d91">enumerate</span>(<span style="color:#000">dataloader</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Move data to the appropriate device (CPU/GPU)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_batch</span> <span style="color:#000">=</span> <span style="color:#000">x_batch</span><span style="color:#000">.</span><span style="color:#000">to</span>(<span style="color:#000">device</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Forward pass</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x_recon</span>, <span style="color:#000">mu</span>, <span style="color:#000">log_var</span> <span style="color:#000">=</span> <span style="color:#000">vae</span>(<span style="color:#000">x_batch</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Compute ELBO</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">elbo</span>, <span style="color:#000">recon_loss</span>, <span style="color:#000">kl_divergence</span> <span style="color:#000">=</span> <span style="color:#000">vae</span><span style="color:#000">.</span><span style="color:#000">compute_elbo</span>(<span style="color:#000">x_batch</span>, <span style="color:#000">x_recon</span>, <span style="color:#000">mu</span>, <span style="color:#000">log_var</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Backward pass and optimization</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">optimizer</span><span style="color:#000">.</span><span style="color:#000">zero_grad</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># We minimize -ELBO, which is equivalent to maximizing ELBO</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span> <span style="color:#000">=</span> <span style="color:#000">-</span><span style="color:#000">elbo</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">loss</span><span style="color:#000">.</span><span style="color:#000">backward</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#000">optimizer</span><span style="color:#000">.</span><span style="color:#000">step</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">total_loss</span> <span style="color:#000">+=</span> <span style="color:#000">loss</span><span style="color:#000">.</span><span style="color:#000">item</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">if</span> <span style="color:#000">batch_idx</span> <span style="color:#000">%</span> <span style="color:#1c01ce">100</span> <span style="color:#000">==</span> <span style="color:#1c01ce">0</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#a90d91">print</span>(
+</span></span><span style="display:flex;"><span>                <span style="color:#c41a16">f</span><span style="color:#c41a16">&#34;Epoch [</span><span style="color:#c41a16">{</span><span style="color:#000">epoch</span><span style="color:#000">+</span><span style="color:#1c01ce">1</span><span style="color:#c41a16">}</span><span style="color:#c41a16">/</span><span style="color:#c41a16">{</span><span style="color:#000">num_epochs</span><span style="color:#c41a16">}</span><span style="color:#c41a16">], Batch [</span><span style="color:#c41a16">{</span><span style="color:#000">batch_idx</span><span style="color:#c41a16">}</span><span style="color:#c41a16">/</span><span style="color:#c41a16">{</span><span style="color:#a90d91">len</span>(<span style="color:#000">dataloader</span>)<span style="color:#c41a16">}</span><span style="color:#c41a16">], &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#c41a16">f</span><span style="color:#c41a16">&#34;Loss: </span><span style="color:#c41a16">{</span><span style="color:#000">loss</span><span style="color:#000">.</span><span style="color:#000">item</span>()<span style="color:#c41a16">:</span><span style="color:#c41a16">.4f</span><span style="color:#c41a16">}</span><span style="color:#c41a16">, Recon Loss: </span><span style="color:#c41a16">{</span><span style="color:#000">recon_loss</span><span style="color:#000">.</span><span style="color:#000">item</span>()<span style="color:#c41a16">:</span><span style="color:#c41a16">.4f</span><span style="color:#c41a16">}</span><span style="color:#c41a16">, &#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#c41a16">f</span><span style="color:#c41a16">&#34;KL Div: </span><span style="color:#c41a16">{</span><span style="color:#000">kl_divergence</span><span style="color:#000">.</span><span style="color:#000">item</span>()<span style="color:#c41a16">:</span><span style="color:#c41a16">.4f</span><span style="color:#c41a16">}</span><span style="color:#c41a16">&#34;</span>
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">avg_loss</span> <span style="color:#000">=</span> <span style="color:#000">total_loss</span> <span style="color:#000">/</span> <span style="color:#a90d91">len</span>(<span style="color:#000">train_dataset</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">f</span><span style="color:#c41a16">&#34;Epoch [</span><span style="color:#c41a16">{</span><span style="color:#000">epoch</span><span style="color:#000">+</span><span style="color:#1c01ce">1</span><span style="color:#c41a16">}</span><span style="color:#c41a16">/</span><span style="color:#c41a16">{</span><span style="color:#000">num_epochs</span><span style="color:#c41a16">}</span><span style="color:#c41a16">], Average Loss: </span><span style="color:#c41a16">{</span><span style="color:#000">avg_loss</span><span style="color:#c41a16">:</span><span style="color:#c41a16">.4f</span><span style="color:#c41a16">}</span><span style="color:#c41a16">&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Save the model checkpoint</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">save</span>(<span style="color:#000">vae</span><span style="color:#000">.</span><span style="color:#000">state_dict</span>(), <span style="color:#000">checkpoint_path</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">f</span><span style="color:#c41a16">&#34;Model saved to </span><span style="color:#c41a16">{</span><span style="color:#000">checkpoint_path</span><span style="color:#c41a16">}</span><span style="color:#c41a16">&#34;</span>)
+</span></span></code></pre></div><p>In the above code, we aim to maximize ELBO $\mathcal{L}(q)$ by updating the parameters $q(\mathbf{z}|\mathbf{x})$ and $p(\mathbf{x}|\mathbf{z})$, i.e., encoder and decoder parameters, respectively. The optimization objective is $$ q^*(\mathbf{z}) = {\arg\max}_{q(\mathbf{z})\in\mathcal{Q}} \mathcal{L}(q) $$</p>
+<p>The model&rsquo;s reconstruction after training is as follows:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/elbo/mnist-vae-elbo.svg#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> VAE MNIST Generation </figcaption>
+    </div>
+    
+</figure></p>
+<h2 id="connecting-back-to-elbo-derivation">Connecting Back to ELBO Derivation</h2>
+<ul>
+<li>Objective: We aim to approximate $p(\mathbf{z}|\mathbf{x}=\mathcal{D})$ with $q(\mathbf{z}|\mathbf{x})$.</li>
+<li>KL Divergence: We aim to minimize $KL(q(\mathbf{z}|\mathbf{x}) | p(\mathbf{z}|\mathbf{x}))$</li>
+<li>ELBO: Since $p(\mathbf{x})$ is intractable (<em>expanding $p(\mathbf{z}|\mathbf{x})=p(\mathbf{x},\mathbf{z})p(\mathbf{x})$</em>), we maximize the ELBO $\mathcal{L}(q)$ which is a lower bound of the evidence $\log p(\mathbf{x})$
+$$ \begin{gather*}
+\mathcal{L}(q) &amp; =\mathbb{E}_{q(\mathbf{z})}\left[\log\left(\frac{p(\mathbf{x},\mathbf{z})}{q(\mathbf{z})}\right)\right] \\
+&amp; =\mathbb{E}_{q(\mathbf{z})}[\log p(\mathbf{x}|\mathbf{z})]+\mathbb{E}_{q(\mathbf{z})}[\log p(\mathbf{z})]-\mathbb{E}_{q(\mathbf{z})}[\log q(\mathbf{z})] \\
+&amp; =\mathbb{E}_{q(\mathbf{z})}[\log p(\mathbf{x}|\mathbf{z})]-KL(q(\mathbf{z})||p(\mathbf{z}))
+\end{gather*} $$
+In code</li>
+<li>$\mathbb{E}_{q(\mathbf{z})}[\log p(\mathbf{x}|\mathbf{z})]$ corresponds to the reconstruction loss (<code>recon_loss</code>)</li>
+<li>$KL(q(\mathbf{z})||p(\mathbf{z}))$ corresponds to the KL divergence term (<code>kl_divergence</code>)</li>
+<li>The ELBO is computed as a negative sum of these two terms, i.e., <code>elbo = -(recon_loss + kl_divergence)</code></li>
+</ul>
+<h3 id="notes">Notes</h3>
+<ol>
+<li>Reparameterization Trick: Allows gradients to flow through stochastic sampling by expression $\mathbf{z} = \mu + \sigma \cdot \epsilon$, where $\epsilon \in \mathcal{N}(0,I)$</li>
+<li>KL Divergence for Gaussians: Closed form solution exists. The analytical expression simplifies computation and avoids numerical integration.</li>
+<li>Maximizing ELBO: By maximizing ELBO, we indirectly minimize the KL divergence between $q(\mathbf{z}|\mathbf{x})$ (<em>surrogate distribution / encoder output</em>) and $p(\mathbf{z}|\mathbf{x})$ (<em>true posterior</em>)</li>
+</ol>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/posts/batch_normalization/">
+                        Batch Normalization
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/posts/kl-divergence/">
+                        KL Divergence
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

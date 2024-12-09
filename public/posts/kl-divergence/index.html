@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="An LSM Tree overview and Java implementation." />
+
+<title>
+    
+    KL Divergence | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/posts/kl-divergence/" />
+
+<meta property="og:url" content="http://localhost:1313/posts/kl-divergence/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="KL Divergence">
+  <meta property="og:description" content="An LSM Tree overview and Java implementation.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-11-12T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-11-12T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/posts/">Posts</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/posts/kl-divergence/">KL Divergence</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">KL Divergence</h1>
+    
+    <p class="single-summary">KL Divergence Explained (with Derivation).</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-11-12T00:00:00&#43;00:00">November 12, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      4 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#expected-value-concept-1">Expected Value (Concept 1)</a></li>
+    <li><a href="#law-of-large-numbers-concept-2">Law of Large Numbers (Concept 2)</a></li>
+    <li><a href="#forward-vs-reverse-kl-divergence">Forward vs. Reverse KL Divergence</a></li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <h2 id="introduction">Introduction</h2>
+<p>KL divergence is a measure of how one probability distribution is different from a second, reference distribution. Such a dissimilarity quantification is essential in variational inference.</p>
+<p>Consider the random variable $X$ with its possible states ${x_1,x_2,\dots,x_n}$. We have two probability distributions over the random variable $X$: $p_\theta$ and $q_\phi$. Given the states that the random variable $X$ can take, we compute the log probabilities (log-likelihoods) instead of probabilities to avoid computational issues with very small values.</p>
+<p>For each state $x_i$, one way to understand the dissimilarity between the two distributions is to consider the difference in their log probabilities $$ \log p_\theta(x_i) - \log q_\phi(x_i), \forall \space i \in1,\dots, n $$If the difference results in zero for all $x_i$, then the distributions $p_\theta$ and $q_\phi$ are identical. This difference can also be expressed as $$  \log p_\theta(x_i) - \log q_\phi(x_i)  = \log \left[ \frac{p_\theta (x_i)}{q_\phi(x_i)}\right] $$The ratio ${p_\theta (x_i)} / {q_\phi(x_i)}$ is referred to as <strong>likelihood ratio</strong>.
+The entire term is referred to as <strong>log-likelihood ratio</strong>.</p>
+<h2 id="expected-value-concept-1">Expected Value (Concept 1)</h2>
+<p>The expected value (mean) of a random variable $X$ under the distribution $p_\theta$ is defined as: $$ \mathbb{E}_{p_\theta}[X] = \sum_{i=1}^\theta x_i p_\theta(x_i)$$where $x_i$ is the <strong>state</strong> of the random variable $X$ and $p_\theta(x_i)$ is the probability of that state.
+Similarly, the expected value of a function of a random variable, i.e., $h(X)$ can be computed as follows: $$ \mathbb{E}_{p_\theta}[h(X)] = \sum_{i=1}^\theta h(x_i) p_\theta( x_i)$$For continuous random variables, the sums are replaced with integrals over the probability density function: $$  \mathbb{E}_{p_\theta}[h(X)] = \int_{-\infty}^{\infty}  h(x) p_\theta( x) dx $$</p>
+<hr>
+<p>Returning to the KL divergence derivation, the log-likelihood ratio is a function of the random variable $X$.  Thus the expected log-likelihood ratio under $p_\theta$ is calculated as follows: $$ \begin{aligned}
+D_{KL}(p_\theta\parallel q_\phi) &amp; =\mathbb{E}_{p_\theta}\left[\log\left(\frac{p_\theta(X)}{q_\phi(X)}\right)\right] \
+&amp; =\sum_{i=1}^np_\theta(x_i)\log\left(\frac{p_\theta(x_i)}{q_\phi(x_i)}\right)
+\end{aligned} $$
+For continuous random variables $$ D_{KL}(p_\theta \parallel  q_\phi)=\int_{-\infty}^\infty p_\theta(x)\log\left(\frac{p_\theta(x)}{q_\phi(x)}\right)dx $$Computing these expressions exactly can be challenging, especially when $n$ is large or the
+integrals are intractable.</p>
+<p>For both discrete and random variable formulations, there would be a lot of computational problems. This stems from the fact that the summation is until $\infty$, and/or the integration is from $-\infty$ to $\infty$.</p>
+<h2 id="law-of-large-numbers-concept-2">Law of Large Numbers (Concept 2)</h2>
+<p>The Law of Large Numbers states that the sample average of a function of a random variable converges to its expected value as the number of samples $N$ approaches infinity, i.e., $N\to\infty$
+$$   \frac{1}{N}\sum_{i=1}^N h(x_i) \approx \mathbb{E}_p [h(X)]$$ where $x_i$ are independent samples drawn from the distribution $p$.
+As $N$ gets larger, the average tends to get closer to the true expected value of the random variable $X$. $N$ has to be a large number for the approximation to be held true.</p>
+<p>Using the Law of Large Numbers, we can approximate the KL divergence by sampling from $p_\theta$: $$ D_{KL}(p_\theta \parallel  q_\phi) = \mathbb{E}_{p_\theta} \left[ \log \left( \frac{p_\theta(X)}{q_\phi(X)} \right) \right] \approx  \frac{1}{N}\sum_{i=1}^N \log \left( \frac{p_\theta(x_i)}{q_\phi(x_i)} \right)$$Similarly, we can approximate $D_{KL}(q_\phi \parallel  p_\theta)$ by sampling from $q_\phi$:
+$$ D_{KL}(q_\phi \parallel  p_\theta) = \mathbb{E}_{q_\phi} \left[ \log \left( \frac{q_\phi(X)}{p_\theta(X)} \right) \right] \approx  \frac{1}{N}\sum_{i=1}^N \log \left( \frac{q_\phi(x_i)}{p_\theta(x_i)} \right)$$</p>
+<blockquote>
+<p><strong>Note:</strong> In practice, we often choose to sample from the distribution that is easier to sample from or compute.</p>
+</blockquote>
+<p>$$ \begin{gather*} D_{KL}(p_\theta \parallel  q_\phi) \neq D_{KL}(q_\phi \parallel  p_\theta) \end{gather*}$$KL-divergence is not a symmetric metric.  This asymmetry is why it&rsquo;s called a divergence rather than a distance metric.</p>
+<h2 id="forward-vs-reverse-kl-divergence">Forward vs. Reverse KL Divergence</h2>
+<p>Depending on which distribution is the reference, and which is the approximation.</p>
+<ul>
+<li><strong>Forward KL divergence</strong> $D_{KL}(p_\theta \parallel  q_\phi)$: Minimizing this tends to produce a <strong>mean-seeking</strong> behavior, where the approximating distribution $q_\phi$ spreads out to cover the support of $p_\theta$.</li>
+<li><strong>Reverse KL divergence</strong> $D_{KL}(q_\phi \parallel  p_\theta)$: Minimizing this tends to produce a <strong>mode-seeking</strong> behavior, where $q_\phi$​ focuses on the modes (peaks) of $p_\theta$​.</li>
+</ul>
+<p><strong>Example:</strong> Suppose $p$ is a bimodal distribution, and we want to approximate it with a unimodal distribution $q$:</p>
+<ul>
+<li>Minimizing <strong>forward KL divergence</strong> $D_{KL}(p \parallel  q)$ will result in $q$ trying to cover both modes, often centering between them.</li>
+<li>Minimizing <strong>reverse KL divergence</strong> $D_{KL}(q\parallel  p)$ will result in $q$ focusing on one of the modes, effectively ignoring the other.</li>
+</ul>
+<p>The choice between forward and reverse KL divergence depends on the application and desired properties of the approximation.</p>
+<p><strong>Cross-Entropy Loss</strong> implicitly involves the <strong>forward KL divergence</strong>. In classification tasks, minimizing cross-entropy between the true labels and predicted probabilities is equivalent to minimizing the forward KL divergence between the empirical distribution and the model&rsquo;s predicted distribution.</p>
+<blockquote>
+<p>Reverse KL divergence is mostly used when it comes to density estimation tasks.</p>
+</blockquote>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/kl_divergence/forward_reverse_kldiv.svg#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Using Forward &amp; Reverse KL Divergence to Approximate a Bimodal Distribution </figcaption>
+    </div>
+    
+</figure></p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/posts/elbo/">
+                        ELBO: Evidence Lower Bound Optimization
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/posts/weight_tying/">
+                        Weight Tying
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

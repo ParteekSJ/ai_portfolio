@@ -1,0 +1,97 @@
+baseURL = 'https://parteeksjamwal.netlify.app'
+languageCode = 'en-us'
+title = 'Parteek Jamwal'
+theme = "typo"
+hideFooter = true
+[taxonomies]
+tag = 'tags'
+
+
+# Google analytics code
+googleAnalytics = "G-xxxxxxxxx"
+
+[params]
+# Meta description
+description = "A Tech Blog"
+faviconPath = "/favicon_io/"
+ 
+# Appearance settings
+theme = 'light'
+colorPalette = 'catpuccin'
+hideHeader = false
+
+# Intro on main page, content is markdown
+# homeIntroTitle = 'Yo!'
+homeIntroContent = """
+AI Lead 🦾 at Lockheed Martin CISS, Abu Dhabi, United Arab Emirates 🇦🇪. Here, you'll find my interpretations of different research papers and other ML related concepts. Welcome 🥷🏻!
+"""
+
+# Collection to display on home
+homeCollectionTitle = 'Posts'
+homeCollection = 'posts'
+
+# Lists parameters
+paginationSize = 100
+listSummaries = true
+# listDateFormat = '2 Jan 2006'
+listDateFormat = '02/01/2006'
+
+# Breadcrumbs
+breadcrumbs = true
+
+# Social icons
+[[params.social]]
+name = "linkedin"
+url = "https://www.linkedin.com/in/parteeksjamwal/"
+
+# [[params.social]]
+# name = "medium"
+# url = "https://medium.com/@user"
+
+[[params.social]]
+name = "github"
+url = "https://github.com/ParteekSJ"
+
+[[params.social]]
+name = "email"
+url = "mailto:parteeksjamwal@gmail.com"
+
+# Main menu pages
+[[params.menu]]
+name = "home"
+url = "/"
+
+[[params.menu]]
+name = "posts"
+url = "/posts"
+
+[[params.menu]]
+name = "papers"
+url = "/papers"
+
+[[params.menu]]
+name = "projects"
+url = "/projects"
+
+# [[params.menu]]
+# name = "about"
+# url = "/about"
+
+# Syntax highlight on code blocks
+[markup]
+[markup.highlight]
+style = 'xcode'
+guessSyntax = true
+codeFences = true
+
+# Giscus comments
+[params.giscus]
+enable = false
+repo = "user/repo"
+repoid = "repoId"
+category = "General"
+categoryid = "categoryId"
+mapping = "pathname"
+theme = "preferred_color_scheme"
+
+enableInlineShortcodes = true

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="An LSM Tree overview and Java implementation." />
+
+<title>
+    
+    WideResNet Explained | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/papers/002-wideresnet/" />
+
+<meta property="og:url" content="http://localhost:1313/papers/002-wideresnet/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="WideResNet Explained">
+  <meta property="og:description" content="An LSM Tree overview and Java implementation.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="papers">
+    <meta property="article:published_time" content="2024-09-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-09-05T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.5d549282aa71faacfceb2e30934b742b30ac25d0b3a9b86aa876fd5ac00088bd.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/papers/">Papers</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/papers/002-wideresnet/">WideResNet Explained</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">WideResNet Explained</h1>
+    
+    <p class="single-summary">WideResNet Model Explained.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-09-05T00:00:00&#43;00:00">September 5, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      10 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#width-vs-depth-in-neural-networks">Width vs. Depth in Neural Networks</a></li>
+    <li><a href="#problem-diminishing-feature-reuse">Problem: Diminishing Feature Reuse</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#three-ways-to-increase-representational-power-of-residual-blocks">Three Ways to Increase Representational Power of Residual Blocks</a></li>
+    <li><a href="#general-structure-of-a-residual-block">General Structure of a Residual Block:</a></li>
+    <li><a href="#types-of-convolutions-per-residual-block">Types of Convolutions Per Residual Block</a></li>
+    <li><a href="#number-of-convolutional-layers-per-residual-block">Number of Convolutional Layers Per Residual Block</a></li>
+    <li><a href="#width-of-residual-blocks">Width of Residual Blocks</a></li>
+    <li><a href="#dropout-in-residual-networks">Dropout in Residual Networks</a></li>
+  </ul>
+
+  <ul>
+    <li><a href="#types-of-convolutions-in-a-block">Types of Convolutions in a Block</a>
+      <ul>
+        <li><a href="#results">Results</a></li>
+      </ul>
+    </li>
+    <li><a href="#number-of-convolutions-per-block">Number of Convolutions Per Block</a></li>
+    <li><a href="#width-of-residual-blocks-1">Width of Residual Blocks</a>
+      <ul>
+        <li><a href="#results-1">Results</a></li>
+        <li><a href="#thin-vs-wide-residual-networks">THIN vs. WIDE Residual Networks</a></li>
+      </ul>
+    </li>
+    <li><a href="#summary">Summary</a></li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <ul>
+<li>In ResNet, each fraction of improved accuracy is obtained by nearly doubling the layers, i.e., increasing depth. Training of such deep NN leads to a problem of diminishing <!-- raw HTML omitted -->feature reuse<!-- raw HTML omitted -->.</li>
+<li>The implications of increasing depth beyond a certain point are as follows:
+<ul>
+<li>Added layers are not contributing significantly to the network&rsquo;s performance, i.e., <em>diminishing feature reuse</em>.</li>
+<li>Training process becomes slow and computationally expensive.</li>
+</ul>
+</li>
+<li>To mitigate the above problem, the authors introduce a novel architecture where they <strong>widen</strong> the convolutional layers in the residual blocks. In simpler terms, they
+<ul>
+<li>decrease depth (reduce total number of layers) and</li>
+<li>increase width (increase number of channels in each convolutional layer // increase the channel dimension)</li>
+</ul>
+</li>
+</ul>
+<p>Important Distinction</p>
+<ul>
+<li><strong>Depth</strong> = Number of Layers in the Network.</li>
+<li><strong>Width</strong> = Number of Channels/Filters in each convolutional layer.</li>
+</ul>
+<h1 id="introduction">Introduction</h1>
+<ul>
+<li>Training deep networks has the vanishing/exploding gradients and degradation problem. Some mitigation strategies for these are
+<ul>
+<li>better optimizers.</li>
+<li>well-designed initialization strategies.</li>
+<li>skip connections.</li>
+<li>knowledge transfer.</li>
+<li>layer-wise training.</li>
+</ul>
+</li>
+<li>Residual links ($\mathcal{F}(\mathbf{x}) + \mathbf{x}$) speed up convergence of deep networks.</li>
+</ul>
+<h2 id="width-vs-depth-in-neural-networks">Width vs. Depth in Neural Networks</h2>
+<p>Authors of ResNet tried to make the network as thin as possible (small channel/feature map sizes) in favor of increasing their depth and having less parameters. Also, introduced a bottleneck block which can be referred in <a href="/blogs/001-resnet/">(2015) ResNet - Deep Residual Learning for Image Recognition</a> paper explanation.</p>
+<p>Authors of ResNet paper wanted to make their network deeper. For that, they introduced the Bottleneck blocks since it was getting computationally expensive.</p>
+<blockquote>
+<p>ResNet with identity mapping that allows to train very deep networks is at the same time a weakness of the residual networks.</p>
+</blockquote>
+<h2 id="problem-diminishing-feature-reuse">Problem: Diminishing Feature Reuse</h2>
+<p>As gradients flow through the network there is nothing to force it to go through the residual block weights and hence it can avoid learning anything during training. Therefore, it is possible that</p>
+<ul>
+<li>there are either only a few blocks that learn useful representations, or</li>
+<li>many blocks share little information with small contribution to the final goal.</li>
+</ul>
+<p>To address the problem of diminishing feature reuse, one proposed idea was to randomly disable residual blocks during training where each residual block has an identity scalar weight associated with it on which dropout is applied.</p>
+<h1 id="wide-residual-networks">Wide Residual Networks</h1>
+<p>Residual block with identity mapping can be represented as follows:
+$$\mathbf{x}_{l+1} =  \mathbf{x}_l + \mathcal{F}(\mathbf{x}_l, \mathcal{W}_l)$$</p>
+<p>where $\mathbf{x}_{l}$ and $\mathbf{x}_{l+1}$ are the input and output of the residual block, $\mathcal{F}$ is the residual function and $\mathcal{W}$ is the weights of the residual block.</p>
+<p>ResNet consists of sequentially stacked residual blocks.
+Residual networks consists of two types of blocks:</p>
+<ol>
+<li><strong>Basic</strong>: Two consecutive $3\times3$  convolutions with BN and ReLU preceding the convolution, i.e., these operations occur before the convolutional operation. $$ \begin{gather} \text{conv } 3\times 3 - \text{conv } 3\times 3 \ \text{CONV} \to \text{BN} \to \text{ReLU} \end{gather} $$</li>
+<li><strong>Bottleneck</strong>: One $3\times 3$ convolution surrounded by dimensionality reducing and expanding $1\times1$ convolutional layers. $$ \begin{gather} \text{conv } 1\times 1 - \text{conv } 3\times 3 - \text{conv } 1\times 1 \ \text{CONV} \to \text{BN} \to \text{ReLU} \end{gather}$$</li>
+</ol>
+<blockquote>
+<p>Compared to original architecture from the ResNet paper, the order of Batch Normalization, ReLU activation and CONV in residual block was changed from <code>CONV-BN-ReLU</code> TO <code>BN-ReLU-CONV</code>. The latter is shown to train faster and achieve better results.</p>
+</blockquote>
+<p>Bottleneck blocks were initially used to make the networks deeper (<em>increasing the number of layers</em>) by making the residual blocks less computationally expensive. However, the authors focus on widening the blocks and hence <code>BottleNeck</code> block which makes the residual blocks thinner is not considered at at. We only consider <code>Basic</code> block.</p>
+<h2 id="three-ways-to-increase-representational-power-of-residual-blocks">Three Ways to Increase Representational Power of Residual Blocks</h2>
+<ol>
+<li><strong>to add more convolutional layers per block</strong>, i.e., increase depth / adding more layers to the residual block and by extension to the network.</li>
+<li><strong>to widen convolutional layers by adding from feature planes</strong>, i.e., increase the number of filters in each convolutional layer. default=<strong>64</strong>.</li>
+<li>to increase filter sizes in convolutional layers, i.e., alter the kernel sizes in the convolutional layers. Since $3\times3$ filters are shown to be effective in several works, this option is <strong>NOT CONSIDERED.</strong></li>
+</ol>
+<p>Two Factors are introduced</p>
+<ol>
+<li>$l$ - Deepening Factor (<em>number of convolutions per block</em>)</li>
+<li>$k$ - Widening Factor (<em>number of feature planes in the block / channel or filter size</em>)</li>
+</ol>
+<blockquote>
+<p>Baseline <code>Basic</code> block corresponds to $l=2,k=1$, i.e., the block consists of $l=2$ convolutional layers and default channel dimensions/feature planes, i.e., $k=1$. There is no increase in the amount of filters/channels in the <code>CONV</code> layers. It stays the same throughout.</p>
+</blockquote>
+<h2 id="general-structure-of-a-residual-block">General Structure of a Residual Block:</h2>
+<figure><img src="/assets/blogs/004-wideresnet-explained/Structure_of_WRN.png">
+</figure>
+
+<ul>
+<li>$k$ denotes the widening factor. Original ResNet architecture is equivalent to $k=1$.</li>
+<li>$l$ denotes the deepening factor. In this case, $l=2$.</li>
+<li>$N$ denotes the number of convolutional blocks $B(M)$ per group, i.e., <code>CONV2</code> consists of $N \times B(3,3)$ blocks.</li>
+<li>Downsampling of the spatial dimensions is performed by the first layers in groups <code>CONV3</code> and <code>CONV4</code>.</li>
+</ul>
+<p>The general structure is illustrated in the above picture.</p>
+<ol>
+<li>It consists of an initial convolutional layer [<code>CONV1</code>] that is followed by $3$ groups [<code>CONV2</code>, <code>CONV3</code>, <code>CONV4</code>]. Each group [<code>CONV2-4</code>] consists of $N$ $B(3,3)$ blocks.</li>
+<li>This is followed by average pooling and final classification layer.
+Size of <code>CONV1</code> is fixed for all layers, while introduced widening factor $k$ scales the width of residual blocks in three groups [<code>CONV2-4</code>].</li>
+</ol>
+<h2 id="types-of-convolutions-per-residual-block">Types of Convolutions Per Residual Block</h2>
+<ul>
+<li>$B(M)$ denotes residual block structure, where $M$ is a list with <strong>kernel sizes</strong> of the convolutional layers in the block. Additionally, number of feature planes stays constant for all the blocks (<em>since <code>BottleNeck</code> blocks aren&rsquo;t considered</em>)</li>
+<li>$B(3,1)$ denotes a residual block with a $3\times 3$ and $1\times 1$ convolutional layers.</li>
+<li>Different combinations such as $B(3,1)$ or $B(1,3)$ or $B(3,1,1)$ can increase or decrease the representational power of the residual blocks.</li>
+<li>Here are the different residual block structures that were considered
+<ul>
+<li>$B(3,3)$ - original <code>BASIC</code> block.</li>
+<li>$B(3,1,3)$ - with one extra  $1\times1$ layer.</li>
+<li>$B(1,3,1)$ - with the same dimensionality for all convolutions, <code>straightened BottleNeck</code>, i.e., no dimensionality change.</li>
+<li>$B(1,3)$ - alternating $1\times 1$ and $3\times 3$ convolutions everywhere.</li>
+<li>$B(3,1)$ - similar idea to previous block.</li>
+<li>$B(3,1,1)$ - Network-in-Network style block (<em>from some paper</em>).
+These were the different types of convolutions that were considered.</li>
+</ul>
+</li>
+</ul>
+<h2 id="number-of-convolutional-layers-per-residual-block">Number of Convolutional Layers Per Residual Block</h2>
+<ul>
+<li>Authors also experiment with block deepening factor $l$ to see how it affects performance. The comparision is done amongst different networks such that number of parameters roughly remain the same.</li>
+<li>They experiment networks with different $l$ and $d$ (where $d$ denotes the total number of blocks), while ensuring network complexity is roughly constant, i.e., for an increase in $l$ (<em>number of CONV layers per residual block</em>), there should be a decrease in $d$ (<em>total number of blocks</em>).</li>
+</ul>
+<h2 id="width-of-residual-blocks">Width of Residual Blocks</h2>
+<p>Authors also experiment with the widening factor $k$ of a block.</p>
+<ul>
+<li>While number of parameters increase linearly with $l$ (<em>deepening factor</em>) and $d$ (<em>number of ResNet blocks</em>), number of parameters and computational complexity are quadratic in $k$. Even though the parameters increase quadratically with $k$, this is fine for the GPU since we&rsquo;re distributing the same tensor from the previous activation across the different feature maps.</li>
+</ul>
+<blockquote>
+<p>Widening Factor is easier to parallelize on the GPU. More parameters, more memory, and better results.</p>
+</blockquote>
+<ul>
+<li>Original ResNet is a WRN with $k=1$ and is referred to as a <code>THIN</code> network.</li>
+<li>Networks with $k&gt;1$ is referred to as <code>WIDE</code> network.</li>
+</ul>
+<blockquote>
+<p>WRN-$n$-$k$ denotes a residual network that has a total number of convolutional layers $n$ and widening factor $k$.</p>
+</blockquote>
+<p>For example, WRN-$n$-$k$ is a network with $40$ layers and $k=2$ wider than the original would be denoted as WRN-$40$-$2$. We can also append the block type, i.e., WRN-$40$-$2$-$B(3,3)$.</p>
+<h2 id="dropout-in-residual-networks">Dropout in Residual Networks</h2>
+<ul>
+<li>With increase in $k$ [<em>widening factor</em>], the authors also looked into different methods of regularization. Default ResNets already have BN that provides a regularization effect by reducing internal covariate shift. However it requires heavy data augmentation (e.g., random cropping, flipping, rotating, etc.) to artificially increase the diversity of the training data and improve generalization. This however isn&rsquo;t always possible.</li>
+<li>To address the issue of overfitting, the dropout layer is placed between the two consecutive 3×3 convolutions and after the ReLU activation function. The purpose of this dropout layer is to perturb (or introduce noise) to the Batch Normalization layer in the next residual block. By randomly dropping out (or setting to zero) some of the activations, the dropout layer prevents the BN layers from overfitting to the specific patterns in the training data.</li>
+<li>Negative Results from inserting dropout in the identity component of the residual block.
+Positive Results using dropout between convolutional layers.</li>
+</ul>
+<blockquote>
+<p>It is a good idea to have dropout between the CONV layers, i.e., in the residual block; the non-linear part of the network rather than having it in the shortcut (<em>identity connection</em>). This forces the network to go through the shortcut connection (<em>if possible</em>).</p>
+</blockquote>
+<h1 id="3-experimental-results">3. Experimental Results</h1>
+<ul>
+<li>$k=2$ is used through all experiments.</li>
+<li>For all the data preprocessing and other stuff, READ THE PAPER.</li>
+</ul>
+<h2 id="types-of-convolutions-in-a-block">Types of Convolutions in a Block</h2>
+<ul>
+<li>Authors use WRN-$40$-$2$ for blocks $B(1,3,1), B(3,1), B(1,3)$ and $B(3,1,1)$. All these blocks have a single $3\times3$ convolutional layer.</li>
+<li>Additionally, they also use WRN-$28$-$2$-$B(3,3)$ and WRN-$22$-$2$-$B(3,1,3)$.</li>
+<li>All these networks are roughly similar in terms of the parameters.</li>
+</ul>
+<h3 id="results">Results</h3>
+<ul>
+<li>Block $B(3,3)$ turned out to be the best by a little margin.</li>
+<li>Block $B(3,1)$ and Block $B(3,1,3)$ are very close to $B(3,3)$ in accuracy having less parameters and less layers.</li>
+<li>$B(3,1,3)$ is faster than others by a small margin.</li>
+</ul>
+<blockquote>
+<p>With the above results, the authors restrict their attention to WRNs with $3\times3$ convolutions.</p>
+</blockquote>
+<h2 id="number-of-convolutions-per-block">Number of Convolutions Per Block</h2>
+<ul>
+<li>Different deepening factor values $l\in[1,2,3,4]$ are tried and experimented with.</li>
+<li>$l$ denotes the number of CONV layers per block.</li>
+<li>WRN-$40$-$2$ with different deepening factor values is tested and the results are as follows:
+<ul>
+<li>$B(3,3)$, i.e., $l=2$ turned out to be the best, whereas $B(3,3,3)$ and $B(3,3,3,3)$, i.e., $l=3, l=4$, had the worst performance.</li>
+<li>This is probably due to increased difficulty in optimization as a result of decreased number of residual connections in the last two cases.</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>$B(3,3)$ is optimal in terms of number of convolutions per block and hence is considered for all the remaining experiments.</p>
+</blockquote>
+<h2 id="width-of-residual-blocks-1">Width of Residual Blocks</h2>
+<ul>
+<li>As $k$ (widening factor) increases, we have to decrease total number of layers in order to maintain roughly the same computational complexity.</li>
+<li>To find the optimal ratio, the authors experimented with $k\in[1,12]$ and depth $\in [16,40]$.</li>
+</ul>
+<h3 id="results-1">Results</h3>
+<ul>
+<li>All networks with $40, 22$ and $16$ layers see consistent gains in accuracy with increase when width $k$ is increased by $1$ to $12$ times.</li>
+<li>When maintaining the same $k=8$ or $k=10$ and varying depth from $16$ to $28$ there is a consistent improvement, however when we further increase depth to $40$, the accuracy decreases.</li>
+</ul>
+<blockquote>
+<p>In simpler terms, WRN-$40$-$8$ loses in accuracy to WRN-$28$-$2$</p>
+</blockquote>
+<h3 id="thin-vs-wide-residual-networks">THIN vs. WIDE Residual Networks</h3>
+<ul>
+<li>WRN-$40$-$4$ compares favorably to thin ResNet-$1001$ (<em>basic block</em>) as it achieves better accuracy on the CIFAR-10 and CIFAR-100 dataset.</li>
+<li>WRN-$40$-$4$ &amp; ResNet-$1001$ have comparable number of parameters, $8.9\times10^6$ and $10.2\times10^6$, suggesting that depth DOES NOT ADD REGULARIZATION EFFECTS.</li>
+<li>Furthermore, the authors also show that WRN-$40$-$4$ is 8-times faster to train, so evidently depth-to-width ratio in the original thin residual networks is far from optimal.</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<ol>
+<li>Widening consistently improves performance across residual networks of different depth.</li>
+<li>Increasing both depth $l$ and width $d$ helps until the number of parameters become too high and stronger regularization is needed.</li>
+<li>There doesn’t seem to be a regularization effect from very high depth in residual networks. Wide Networks ($k&gt;1$) can learn representations that are at least as good as, or potentially better than, thinner networks (fewer channels/filters per layer), even when the total number of parameters is the same.</li>
+</ol>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/papers/resnet/">
+                        ResNet Explained
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/papers/diffusion/">
+                        Diffusion: Denoising Diffusion Probabilistic Models
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

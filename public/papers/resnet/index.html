@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="An LSM Tree overview and Java implementation." />
+
+<title>
+    
+    ResNet Explained | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/papers/resnet/" />
+
+<meta property="og:url" content="http://localhost:1313/papers/resnet/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="ResNet Explained">
+  <meta property="og:description" content="An LSM Tree overview and Java implementation.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="papers">
+    <meta property="article:published_time" content="2023-08-29T00:00:00+00:00">
+    <meta property="article:modified_time" content="2023-08-29T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/papers/">Papers</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/papers/resnet/">ResNet Explained</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">ResNet Explained</h1>
+    
+    <p class="single-summary">ResNet Model Explained.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2023-08-29T00:00:00&#43;00:00">August 29, 2023</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      8 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a>
+      <ul>
+        <li><a href="#results">Results</a></li>
+        <li><a href="#deep-residual-learning">Deep Residual Learning</a></li>
+        <li><a href="#intuition">Intuition</a></li>
+        <li><a href="#residual-learning">Residual Learning</a></li>
+        <li><a href="#identity-mapping-by-shortcuts">Identity Mapping By Shortcuts</a></li>
+        <li><a href="#handling-dimensionality-differences">Handling Dimensionality Differences</a></li>
+      </ul>
+    </li>
+    <li><a href="#network-architectures">Network Architectures</a>
+      <ul>
+        <li><a href="#plain-network">Plain Network</a></li>
+        <li><a href="#residual-network">Residual Network</a></li>
+        <li><a href="#implementation">Implementation</a></li>
+      </ul>
+    </li>
+    <li><a href="#experiments">Experiments</a></li>
+    <li><a href="#identity-vs-projection-shortcuts">Identity vs. Projection Shortcuts</a>
+      <ul>
+        <li></li>
+      </ul>
+    </li>
+    <li><a href="#deeper-bottleneck-architectures">Deeper Bottleneck Architectures</a>
+      <ul>
+        <li><a href="#why-bottleneck">Why Bottleneck?</a></li>
+        <li><a href="#resnet50">ResNet50</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <!-- raw HTML omitted -->
+<p><strong>MAIN CONTRIBUTION</strong>: Reformulate the layers to learn a residual function with respect to the layer inputs, instead of learning unreferenced functions. In deeper networks, training and testing errors tend to increase due to optimization difficulties—a problem that ResNet addresses</p>
+<blockquote>
+<p>Whenever there is a drop in the loss function / error rate, that corresponds to learning rate decay. This is with reference to Figure 1.</p>
+</blockquote>
+<h2 id="introduction">Introduction</h2>
+<ul>
+<li>The quality of features in a CNN can be enriched by increasing the number of stacked layers. Theoretically, the deeper the network, the greater the potential benefit.</li>
+<li>Most networks before ResNet that performed well on the ImageNet dataset had depths ranging between 16 and 30 layers.</li>
+<li>Deeper networks also have a larger receptive field, meaning they can capture more extensive spatial hierarchies in images.</li>
+<li>However, simply increasing the depth of the network doesn&rsquo;t necessarily lead to better performance.</li>
+</ul>
+<p><strong>ISSUES WITH INCREASED DEPTH</strong></p>
+<ul>
+<li><strong>Vanishing/Exploding Gradients</strong>: Deeper networks suffer from gradients that either vanish (become too small) or explode (become too large), hampering convergence from the beginning. This issue can be mitigated by:
+<ul>
+<li>Normalized Initialization (initialize parameters $\sim\mathcal{N}(0,0.02)$)</li>
+<li>Intermediate Normalization Layers (BN)</li>
+</ul>
+</li>
+<li>However, even when these networks are able to converge, another problem emerges.</li>
+</ul>
+<p><strong>DEGRADATION PROBLEM</strong></p>
+<ul>
+<li>As network depth increases, accuracy saturates and then degrades rapidly. Surprisingly, this degradation isn&rsquo;t caused by overfitting.</li>
+<li>The authors experimentally concluded that adding more layers to a network leads to higher training error.</li>
+</ul>
+<blockquote>
+<p><strong>Degradation Error</strong>: An optimization issue indicating that not all systems are easy to optimize.</p>
+</blockquote>
+<figure><img src="/assets/papers/resnet/resnet-depth-implications.png">
+</figure>
+
+<p>The degradation problem suggests that not all architectures are easy to optimize.</p>
+<blockquote>
+<p>Proposed Solution: <strong>Deep Residual Learning Framework</strong>.</p>
+</blockquote>
+<figure><img src="/assets/papers/resnet/residual_block.png">
+</figure>
+
+<ul>
+<li>Instead of hoping each few <strong>stacked layers</strong> directly fit a desired underlying mapping $\mathcal{H}(\mathbf{x})$, we explicitly let this layers fit a <strong>residual mapping</strong> $\mathcal{F}(\mathbf{x}):= \mathcal{H}(\mathbf{x}) - \mathbf{x}$.</li>
+<li>The original mapping is recast as $\mathcal{H}(\mathbf{x}) = \mathcal{F}(\mathbf{x}) + \mathbf{x}$.</li>
+<li>The authors hypothesize that it is easier to optimize the residual mapping $\mathcal{F}(\mathbf{x}) + \mathbf{x}$ than to optimize the original, unreferenced mapping $\mathcal{H}(\mathbf{x})$.</li>
+<li>Ultimately, both unreferenced function $\mathcal{H}(\mathbf{x})$ and recasted mapping $\mathcal{H}(\mathbf{x}) = \mathcal{F}(\mathbf{x}) + \mathbf{x}$ are different ways of expressing the same underlying unknown function. The hypothesis is that it is easier to optimize the latter than the former. Easier to obtain the final result.</li>
+<li>In the extreme case where the identity mapping is optimal, it&rsquo;s easier for the network to push the residual function towards zero, $\mathcal{F}(\mathbf{x}) \to 0$, than to fit an identity mapping using a stack of non-linear layers.</li>
+</ul>
+<p><strong>HOW TO IMPLEMENT THIS IN CODE?</strong></p>
+<ul>
+<li>Practically, the formulation $\mathcal{F}(\mathbf{x}) + \mathbf{x}$ can be realized using feed-forward neural networks with shortcut connections.</li>
+<li>These shortcut connections perform identity mapping, adding the input $\mathbf{x}$ to the output of the stacked layers $\mathcal{F}(\mathbf{x})$. This is depicted in the figure above.</li>
+<li>No extra parameters are added, nor is there additional computational complexity.</li>
+</ul>
+<h3 id="results">Results</h3>
+<ul>
+<li>Extremely deep residual networks are easy to optimize, whereas their plain (non-residual) counterparts exhibit higher errors</li>
+<li>Deep residual networks benefit from accuracy gains due to increased depth without suffering from optimization difficulties</li>
+</ul>
+<h3 id="deep-residual-learning">Deep Residual Learning</h3>
+<blockquote>
+<p>Residual Mapping: Difference b/w the desired output $\mathcal{H}(\mathbf{x})$ and the input $\mathbf{x}$, i.e., $\mathcal{H}(\mathbf{x}) - \mathbf{x}$ rather than learning the entire mapping $\mathcal{H}(\mathbf{x})$ from scratch.</p>
+</blockquote>
+<h3 id="intuition">Intuition</h3>
+<p>Consider a scenario where you want to predict the value of a complex function $\mathcal{H}(\mathbf{x})$ given an input $\mathbf{x}$. Instead of trying to directly learn the mapping $\mathcal{H}(\mathbf{x})$ using a stack of layers, which can be challenging for a neural network, you can re-parameterize the problem as learning the residual function $$\begin{gather*} \mathcal{F}(\mathbf{x}) = \mathcal{H}(\mathbf{x}) - \mathbf{x} \ \mathcal{H}(\mathbf{x})= \mathcal{F}(\mathbf{x}) + \mathbf{x} \end{gather*}$$The intuition is that if the input $\mathbf{x}$ already contains some information about the desired output $\mathcal{H}(\mathbf{x})$, then the residual function $\mathcal{F}(\mathbf{x})$ should be easier to learn than the original mapping $\mathcal{H}(\mathbf{x})$. This is because the residual function only needs to learn the &ldquo;residual&rdquo; or the &ldquo;correction&rdquo; that needs to be added to the input $\mathbf{x}$ to obtain the desired output $\mathcal{H}(\mathbf{x})$.</p>
+<h3 id="residual-learning">Residual Learning</h3>
+<ul>
+<li>$\mathcal{H}(\mathbf{x})$ denotes the underlying mapping to be estimated/fit by a few stacked layers (<em><strong>not necessarily the entire network</strong></em>). Here, $\mathbf{x}$ denotes the input to these layers.</li>
+<li>If multiple non-linear layers can approximate complicated functions such as $\mathcal{H}(\mathbf{x})$, then they can asymptotically approximate the residual functions $\mathcal{F}(\mathbf{x}) = \mathcal{H}(\mathbf{x}) - \mathbf{x}$.</li>
+<li>Instead of hoping each few <strong>stacked layers</strong> directly fit a desired underlying mapping $\mathcal{H}(\mathbf{x})$, we explicitly let this layers fit a residual function $\mathcal{F}(\mathbf{x}) := \mathcal{H}(\mathbf{x}) - \mathbf{x}$.</li>
+<li>Original function to estimate using the stack of non-linear layers just becomes $\mathcal{H}(\mathbf{x})= \mathcal{F}(\mathbf{x}) + \mathbf{x}$.</li>
+</ul>
+<blockquote>
+<p>The model now aims to find $\mathcal{F}(\mathbf{x})$, the residual that needs to be added to the input $\mathbf{x}$ to obtain the underlying mapping $\mathcal{H}(\mathbf{x})$.</p>
+</blockquote>
+<ul>
+<li>
+<p>The degradation problem suggests that solvers (<em>optimizers</em>) might struggle to approximate the identity mapping using multiple non-linear layers. However, with the residual learning formulation, if the identity mapping is optimal, the network can simply push the residual function towards zero, $\mathcal{F}(\mathbf{x}) \to 0$, resulting in $\mathcal{H}(\mathbf{x}) \approx \mathbf{x}$.</p>
+<!-- raw HTML omitted -->
+</li>
+</ul>
+<h3 id="identity-mapping-by-shortcuts">Identity Mapping By Shortcuts</h3>
+<ul>
+<li>The residual learning paradigm is applied to every few stacked layers.</li>
+<li>A <strong>building block</strong> is defined by $$ \mathbf{y} = \mathcal{F}(\mathbf{x}, {W_i}) + \mathbf{x} $$</li>
+<li>Here, $\mathbf{x}$ and $\mathbf{y}$ denote the input and output vectors of the layers considered.</li>
+<li>$\mathcal{F}(\mathbf{x},W_i)$ is the residual mapping to be learned.</li>
+</ul>
+<p>Operation of $\mathcal{F}$ and $\mathbf{x}$ is performed by a shortcut connection and element-wise addition. These &ldquo;shortcut connections&rdquo; introduce neither extra parameters nor computational complexity.</p>
+<h3 id="handling-dimensionality-differences">Handling Dimensionality Differences</h3>
+<p>Dimensions of $\mathcal{F}$ and $\mathbf{x}$ must be equal to make the element-wise addition possible.
+If they&rsquo;re not, we can perform a linear projection $W_s$ by the shortcut connections to match the dimensions, i.e., $$ \mathbf{y} = \mathcal{F}(\mathbf{x}, {W_i}) + W_s\mathbf{x} $$</p>
+<blockquote>
+<p>$W_s$ is only used for matching dimensions.
+$\mathcal{F}(\mathbf{x}, {W_i})$ can represent multiple convolutional layers.</p>
+</blockquote>
+<p>In the case of convolutional layers, dimensionality difference is adjusted as follows:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Conv2D</span>(<span style="color:#000">prev_channel_dim</span>, <span style="color:#000">new_channel_dim</span>, <span style="color:#000">kernel_size</span><span style="color:#000">=</span><span style="color:#1c01ce">1</span>, <span style="color:#000">stride</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>)
+</span></span></code></pre></div><ul>
+<li><code>kernel_size=1</code> is used to increase/decrease the channel dimensions.</li>
+<li><code>stride=2</code> is used to reduce spatial dimensions. For example: $56\times56 \to 28\times28$.</li>
+</ul>
+<h2 id="network-architectures">Network Architectures</h2>
+<h3 id="plain-network">Plain Network</h3>
+<ul>
+<li>Plain networks are inspired by VGG&rsquo;s architecture.</li>
+<li>Convolutional Layers mostly have 3x3 filters and follow 2 design rules:
+<ul>
+<li>for the same output feature map size, the layers have the same number of filters.</li>
+<li>if the feature map size is halved, the number of filters is doubled so as to preserve the time complexity per layer.</li>
+<li>For instance, suppose the feature map size is $56\times56$ and number of filters is $64$. Once the feature map size is halved, the number of filters is doubled, i.e., $128$ $28\times28$ filters</li>
+</ul>
+</li>
+</ul>
+<h3 id="residual-network">Residual Network</h3>
+<ul>
+<li>Shortcut connections turn the network into its counterpart residual version.</li>
+<li>Identity shortcuts can be directly used when the input and output are of the same dimensions.</li>
+<li>When the dimensions [<em>channel dimensionality</em>] increase,
+<ol>
+<li>Shortcut still performs identity mapping, with extra zeros padded for increasing dimensions. No extra parameters are introduced. $\mathbf{y} = \mathcal{F}(\mathbf{x}, {W_i}) + \text{PAD}(\mathbf{x})$.</li>
+<li>Projection shortcut can be used to match dimensions (done via $1\times 1$ convolutions). This is done via the projection layer $W_s$, i.e., $\mathbf{y} = \mathcal{F}(\mathbf{x}, {W_i}) + W_s\mathbf{x}$.</li>
+</ol>
+</li>
+</ul>
+<p>Both these options are performed with a stride $s=2$.
+1x1 CONV to increase channel dimensions, and/or $s=2$ to reduce spatial dimensions.</p>
+<h3 id="implementation">Implementation</h3>
+<ul>
+<li>We adopt batch normalization right after each convolution and before activation, i.e.,
+<code>CONV -&gt; BN -&gt; RELU</code></li>
+</ul>
+<p>Remaining implementation details are outlined in the paper.</p>
+<h2 id="experiments">Experiments</h2>
+<figure><img src="/assets/papers/resnet/resnet_arch_outlined.png">
+</figure>
+
+<!-- raw HTML omitted -->
+<h2 id="identity-vs-projection-shortcuts">Identity vs. Projection Shortcuts</h2>
+<blockquote>
+<p><strong>parameter-free identity shortcuts</strong> = zero padding.</p>
+</blockquote>
+<p>Prior to this section, experiments with using padding shortcuts is done.
+Authors now investigate projection shortcuts.</p>
+<p>Three Options</p>
+<ol>
+<li>Zero padding shortcuts are used for increasing dimensions. All shortcuts are parameter free, i.e., $\mathbf{y} = \mathcal{F}(\mathbf{x}, {W_i}) + \text{PAD}(\mathbf{x})$</li>
+<li>Projection Shortcuts are used for increasing dimensions, and other shortcuts are identity, i.e., $\mathbf{y} = \mathcal{F}(\mathbf{x}, {W_i}) + W_s(\mathbf{x})$. These could be $1\times1$ Convolutional Layers.</li>
+<li>All shortcuts are projections.</li>
+</ol>
+<h4 id="observations">Observations</h4>
+<ul>
+<li>Option B is slightly better than A.
+REASON (<em>hypothesized</em>): Zero Padded dimensions in A have no residual learning.</li>
+<li>Option C is marginally better than B.
+REASON: Extra parameters introduced by the projection shortcuts.
+Authors will not be using OPTION C since the performance difference is small.</li>
+</ul>
+<h2 id="deeper-bottleneck-architectures">Deeper Bottleneck Architectures</h2>
+<figure><img src="/assets/papers/resnet/bottleneck_block.png">
+</figure>
+
+<p>Authors alter the Basic Block architecture (Fig. 5 Left) in order to make the networks even deeper. Due to concerns on the training time and computational complexity, a bottleneck block is created ([<em>modified Basic Block for deeper architectures</em>]).</p>
+<h3 id="why-bottleneck">Why Bottleneck?</h3>
+<p>Deeper non-bottleneck ResNets also gain accuracy from increased depth, but aren&rsquo;t as economical as bottleneck ResNets. Usage of bottleneck design is mainly due to practical considerations.</p>
+<blockquote>
+<p>Bottleneck Blocks were initially used to make blocks less computationally expensive to increase the number of layers, i.e., ResNet50, ResNet101, ResNet152.</p>
+</blockquote>
+<p>Parameter Free Identity Shortcuts [Zero padding Shortcuts] are important for the bottleneck architectures, i.e., no linear projection layer such as $W_s$ is used since the residual $\mathcal{F}$ goes through a $1\times1$ CONV that makes that the dimensionality of $\mathcal{F}$ and $\mathbf{x}$ are the same.</p>
+<p>For each residual function $\mathcal{F}$, we use a stack of 3 layers instead of 2. The three layers are $1\times 1$, $3\times 3$ and $1\times 1$ convolutions, where the $1\times 1$ convolutions are responsible for reducing and then increasing (restoring) dimensions. For instance,</p>
+<ol>
+<li>For a $256$ dimensional input, the $1\times1$ CONV layer downsamples it to $64$.</li>
+<li>For a $64$ dimensional input, the $3\times3$ CONV layer maintains the dimensionality $64$.</li>
+<li>For a $64$ dimensional input, the $1\times1$ CONV layer upsamples it back to $256$.</li>
+</ol>
+<h3 id="resnet50">ResNet50</h3>
+<ul>
+<li>Each 2 layer basic block in the ResNet layer is replaced with a 3-layer bottleneck block.</li>
+<li>Option B ($1\times1$ CONV) is used for increasing channel dimensions.
+The 50/101/152-layer ResNets are more accurate than the 34-layer ones by considerable margins.</li>
+</ul>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/papers/wideresnet/">
+                        WideResNet Explained
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="This blog discusses about different types of normalization used in deep learning." />
+
+<title>
+    
+    Cross Entropy Loss | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/posts/cross_entropy_loss/" />
+
+<meta property="og:url" content="http://localhost:1313/posts/cross_entropy_loss/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="Cross Entropy Loss">
+  <meta property="og:description" content="This blog discusses about different types of normalization used in deep learning.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-10-05T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-10-05T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/posts/">Posts</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/posts/cross_entropy_loss/">Cross Entropy Loss</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">Cross Entropy Loss</h1>
+    
+    <p class="single-summary">BCE and CE Loss Explained.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-10-05T00:00:00&#43;00:00">October 5, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      3 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#cross-entropy-loss-vs-mse-loss">Cross Entropy Loss vs. MSE Loss</a></li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h2 id="introduction">Introduction</h2>
+<p>The <strong>Cross-Entropy Loss</strong> is a loss function commonly used in classification tasks. The formula for the cross-entropy between two distributions $P^∗$ (true distribution) and $P$ (model distribution) is: $$H(P^*|P) = -\sum_i P^*(i) \log P(i)$$
+Imagine we&rsquo;ve been given an image of an animal. We&rsquo;ve been tasked to classify this image into one of $N$ animal categories. Modeling the neural network&rsquo;s output as a probability distribution introduces the idea of uncertainty in our predictions. This approach allows us to quantify the uncertainty we have in our predictions.</p>
+<p>The input to the model $h_\theta$ can be described as $x_i$. The output of the model is a distribution $P(y | x_i ; \theta)$ over the possible classes $y$. If we have the true class distribution, i.e., $P^*(y|x_i)$ (<em>ground truth labels</em>), we can optimize the parameters $\theta$ of model such that model distribution matches the true class distribution as closely as possible, i.e.,  $$P(y | x_i ; \theta) \approx P^*(y|x_i)$$The Kullback-Leibler (KL) divergence between $P$ and $P^*$ can be defined as follows: $$ D_{\text{KL}}(P^* \parallel P) = \sum_i P^*(i) \log \left(\frac{P^*(i)}{P(i)}\right) $$
+Intuitively, minimizing $D_{KL}(p^*(y|x_i) \parallel p(y|x_i;\theta))$ seems the right choice for making $P \approx P^*$. Expanding the KL Divergence yields,
+$$ \begin{align*}D_{KL}  &amp;= \sum_y P^*(y|x_i) \log \left( \frac{P^*(y|x_i)}{P(y|x_i;\theta)} \right) \\ &amp;= \sum_y P^*(y|x_i) \left[ \log P^*(y|x_i) - \log P(y|x_i;\theta) \right] \\&amp;= \sum_y P^*(y|x_i) \log P^*(y|x_i) - \sum_y P^*(y|x_i) \log P(y|x_i;\theta) \\ &amp;= H(P^*) - H(P^*, P) \end{align*} $$</p>
+<p>Here,</p>
+<ul>
+<li>$H(P^*) = \sum_y P^*(y|x_i) \log P^*(y|x_i)$ is the <strong>entropy</strong> of the true/label distribution, and</li>
+<li>$H(P^*, P)=\sum_y P^*(y|x_i) \log P(y|x_i;\theta)$ is the <strong>cross-entropy</strong> between $P^*$ and $P$.</li>
+</ul>
+<p>Since we aim to find $\theta$ that minimizes $D_{KL}(P^*(y|x_i) \parallel P(y|x_i;\theta))$, and $H(P^*)$ doesn&rsquo;t depend on $\theta$, we can discard $H(P^*)$ when optimizing with respect to $\theta$ parameters. hence, the optimization becomes
+$$ \arg\min_\theta D_{\text{KL}} (P^* \parallel P) \equiv \arg\min_\theta H(P^*, P)$$
+To ensure that the model output $P(y|x_i;\theta)$ is a valid probability distribution, we need to enforce the following:</p>
+<ol>
+<li>Non-negative Outputs: $P(y|x_i;\theta) \geq 0 \space \forall \space y$</li>
+<li>Normalization: $\sum_y P(y|x_i;\theta) = 1$
+To satisfy these constraints, we use the <strong>softmax function</strong> to convert the model&rsquo;s raw outputs (logits) into probabilities  $$ P(y|x_i;\theta) = \frac{\exp(s_y)}{\sum_{k=1}^N \exp(s_k)}$$where $s_y$​ is the logit (unnormalized score) for class $y$.</li>
+</ol>
+<p>The <strong>Cross-Entropy Loss</strong> will thus try to minimize the KL divergence between the label distribution $P^∗$ and the predicted distribution $P$.</p>
+<h2 id="cross-entropy-loss-vs-mse-loss">Cross Entropy Loss vs. MSE Loss</h2>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/cross_entropy/mse_vs_ce.svg#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Mean Squared Error vs Cross Entropy Function Loss &amp; Gradients. </figcaption>
+    </div>
+    
+</figure></p>
+<p>In the following diagram, we can see the graphs of both loss functions. As the neural network&rsquo;s predictive ability decreases, i.e., the model outputs incorrect predictions the loss from cross entropy is greater than MSE. In addition, the gradient of the cross entropy loss is much steeper than the MSE loss. Further the predicted value is from the ground truth, higher the loss value.</p>
+<ul>
+<li>
+<p>Cross-Entropy Loss penalizes the model more when it is confidently wrong.  If the model assigns a high probability to an incorrect class, the loss increases significantly. MSE treats all errors uniformly and does not adequately penalize confident but incorrect predictions.  Cross-Entropy Loss provides well-behaved gradients (<em>right figure</em>)that are conducive to efficient learning, especially when combined with the softmax activation function.</p>
+</li>
+<li>
+<p>Gradient Magnitude: The gradients of cross-entropy loss remain significant even when the predicted probabilities are close to 0 or 1, preventing the vanishing gradient problem.
+MSE can lead to vanishing gradients in classification tasks, particularly when activation functions like sigmoid or softmax are used. This can slow down learning or cause the model to converge poorly.</p>
+</li>
+</ul>
+<p>The Cross Entropy Loss and the MSE Loss functions are described as follows: $$ \begin{gather*} \mathcal{L}_{\text{MSE}} = \frac{1}{N} \sum_{i=1}^N (y_i - \hat{y}_i^2) \\ \mathcal{L}_{\text{CE}} = -\sum_{i=1}^N y_i \log \hat{y}_i \end{gather*}$$</p>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/posts/receptive_fields/">
+                        Receptive Fields
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/posts/batch_normalization/">
+                        Batch Normalization
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

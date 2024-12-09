@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Database on Parteek Jamwal</title>
+    <link>http://localhost:1313/tags/database/</link>
+    <description>Recent content in Database on Parteek Jamwal</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 09 Dec 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/tags/database/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>mAP (Mean Average Precision)</title>
+      <link>http://localhost:1313/posts/map/</link>
+      <pubDate>Mon, 09 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/map/</guid>
+      <description>Mean Average Precision Explained.</description>
+    </item>
+    <item>
+      <title>YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection</title>
+      <link>http://localhost:1313/papers/yolov1/</link>
+      <pubDate>Tue, 03 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/yolov1/</guid>
+      <description>YOLO V1 Model Explained.</description>
+    </item>
+    <item>
+      <title>Weight Tying</title>
+      <link>http://localhost:1313/posts/weight_tying/</link>
+      <pubDate>Tue, 26 Nov 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/weight_tying/</guid>
+      <description>Weight Tying Explained.</description>
+    </item>
+    <item>
+      <title>KL Divergence</title>
+      <link>http://localhost:1313/posts/kl-divergence/</link>
+      <pubDate>Tue, 12 Nov 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/kl-divergence/</guid>
+      <description>KL Divergence Explained (with Derivation).</description>
+    </item>
+    <item>
+      <title>ELBO: Evidence Lower Bound Optimization</title>
+      <link>http://localhost:1313/posts/elbo/</link>
+      <pubDate>Tue, 22 Oct 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/elbo/</guid>
+      <description>ELBO Derivation.</description>
+    </item>
+    <item>
+      <title>Batch Normalization</title>
+      <link>http://localhost:1313/posts/batch_normalization/</link>
+      <pubDate>Tue, 15 Oct 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/batch_normalization/</guid>
+      <description>Explanation of what Batch Normalization is and how it is used.</description>
+    </item>
+    <item>
+      <title>Cross Entropy Loss</title>
+      <link>http://localhost:1313/posts/cross_entropy_loss/</link>
+      <pubDate>Sat, 05 Oct 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/cross_entropy_loss/</guid>
+      <description>BCE and CE Loss Explained.</description>
+    </item>
+    <item>
+      <title>Tennis Tracking &amp; Analysis System</title>
+      <link>http://localhost:1313/projects/003-tennis-analysis-system/</link>
+      <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/003-tennis-analysis-system/</guid>
+      <description>Tennis Analysis system with YOLO, PyTorch, and Key Point Extraction.</description>
+    </item>
+    <item>
+      <title>WideResNet Explained</title>
+      <link>http://localhost:1313/papers/wideresnet/</link>
+      <pubDate>Thu, 05 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/wideresnet/</guid>
+      <description>WideResNet Model Explained.</description>
+    </item>
+    <item>
+      <title>Aero Engine Blade Anomaly Detection</title>
+      <link>http://localhost:1313/projects/002-aeroblade-detection/</link>
+      <pubDate>Thu, 29 Aug 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/002-aeroblade-detection/</guid>
+      <description>Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network.</description>
+    </item>
+    <item>
+      <title>Receptive Fields</title>
+      <link>http://localhost:1313/posts/receptive_fields/</link>
+      <pubDate>Mon, 12 Aug 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/receptive_fields/</guid>
+      <description>Receptive Fields Explained</description>
+    </item>
+    <item>
+      <title>Abstractive Summarization of Scientific Articles using Transformers (with Question-Answering)</title>
+      <link>http://localhost:1313/projects/001-abstractive-summarization/</link>
+      <pubDate>Tue, 30 Jul 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/001-abstractive-summarization/</guid>
+      <description>Abstractive Summarization of Scientific Articles using Transformers (with QA).</description>
+    </item>
+    <item>
+      <title>ResNet Explained</title>
+      <link>http://localhost:1313/papers/resnet/</link>
+      <pubDate>Tue, 29 Aug 2023 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/resnet/</guid>
+      <description>ResNet Model Explained.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>http://localhost:1313/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/about/</guid>
+      <description>About Me Hello! I&amp;rsquo;m Parteek Jamwal, a passionate AI Engineer/Researcher.&#xA;Background I have a Masters in Artificial Intelligence and Machine Learning from the University of Birmingham. I currently work at Lockheed Martin CISS, Abu Dhabi, UAE as a Lead AI Engineer.&#xA;Contact Feel free to reach out via email: parteeksjamwal@gmail.com.&#xA;Thank you for visiting my page!</description>
+    </item>
+  </channel>
+</rss>

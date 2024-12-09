@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="An LSM Tree overview and Java implementation." />
+
+<title>
+    
+    Weight Tying | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/posts/weight_tying/" />
+
+<meta property="og:url" content="http://localhost:1313/posts/weight_tying/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="Weight Tying">
+  <meta property="og:description" content="An LSM Tree overview and Java implementation.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-11-26T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-11-26T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/posts/">Posts</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/posts/weight_tying/">Weight Tying</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">Weight Tying</h1>
+    
+    <p class="single-summary">Weight Tying Explained.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-11-26T00:00:00&#43;00:00">November 26, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      5 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#what-is-weight-tying">What is Weight Tying?</a></li>
+    <li><a href="#benefits-of-weight-tying">Benefits of Weight Tying</a></li>
+    <li><a href="#code-example">Code Example</a></li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <p><a href="https://paperswithcode.com/method/weight-tying">https://paperswithcode.com/method/weight-tying</a>
+This is a technique that improves the performance of language models by tying (<strong>sharing</strong>) the weights of the input embedding and output projection layers. This method has shown to have a significant reduction in perplexity. Additionally, this technique can reduce the size of the language models to less than half of their original size without harming their performance.</p>
+<p><a href="https://arxiv.org/abs/1608.05859v3">https://arxiv.org/abs/1608.05859v3</a></p>
+<ul>
+<li>focused more on the topmost weight matrix of language models.</li>
+<li>recommend tying the input embedding and this output embedding</li>
+</ul>
+<h2 id="what-is-weight-tying">What is Weight Tying?</h2>
+<p>This is a technique that is used improve the performance of large language models by tying (sharing) the weights of the embedding and softmax layers. To obtain a better understanding, consider the following figure.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/weight_tying/weight-tying-illustration.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Weight Tying. </figcaption>
+    </div>
+    
+</figure></p>
+<p>Since most language models are decoder-only transformer models, the weight tying is performed between the input embedding layer and the output projection layer. There are several benefits of performing weight tying.</p>
+<h2 id="benefits-of-weight-tying">Benefits of Weight Tying</h2>
+<ol>
+<li>
+<p><strong>Parameter Efficiency</strong>: De-facto language models have separate weights for the input embedding and the output projection layers, each with dimensionality varying with the vocabulary and embedding size. Weight tying reduces the total number of parameters by sharing these matrices, i.e.,  <code>Traditional Total Parameters = Embedding Matrix Parameters + Output Matrix Parameters</code>
+With weight tying:  <code>Total Parameters with Weight Tying = Embedding Matrix Parameters</code>. This is especially useful for large vocabularies.</p>
+</li>
+<li>
+<p><strong>Semantic Alignment</strong>: Tying the weights between the input embedding layer and the output projection layer enforces a symmetry between how words are represented when are the fed as tokens to the input embedding layer versus when they are predicted as outputs. This consistency (<em>in the input and output space</em>) can help the model generalize better on unseen data. The semantic relationships learned during the embedding of input tokens are directly utilized in output prediction (<em>right before performing softmax and sampling</em>). If two words have similar embedding in the input space, the tied weights ensure that the model will also consider them similar in output space potentially improving synonym recognition.</p>
+</li>
+<li>
+<p><strong>Regularization Effect</strong>: Sharing weights acts as a form of regularization as the it reduces the amount of parameters that the model can tune. In other words, it reduces the model&rsquo;s capacity to overfit by limiting the number of parameters that can be adjusted independently</p>
+</li>
+<li>
+<p><strong>Improved Metrics &amp; Training</strong>: Studies such as described in the paper <a href="https://arxiv.org/abs/1608.05859v3">here</a>, have shown that weight tying can lead to better performance metrics such as <strong>perplexity</strong> compared to models without weight tying. Despite the reduction in parameters, models with weight tying often match or exceed the performance of larger models without weight tying, suggesting that the additional parameters in traditional models may not contribute effectively to learning. It also improves training and expedites convergence  as fewer parameters make the optimization landscape smootherand easier to navigate for optimizers such as Adam, SGD, etc.</p>
+</li>
+</ol>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<h2 id="code-example">Code Example</h2>
+<p>Consider the following transformer model</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">TransformerWithWeightTying</span>(<span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Module</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">__init__</span>(
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#000">vocab_size</span>: <span style="color:#a90d91">int</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#000">embedding_dim</span>: <span style="color:#a90d91">int</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#000">num_heads</span>: <span style="color:#a90d91">int</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#000">num_layers</span>: <span style="color:#a90d91">int</span>,
+</span></span><span style="display:flex;"><span>        <span style="color:#000">max_seq_len</span>: <span style="color:#a90d91">int</span>,
+</span></span><span style="display:flex;"><span>    ):
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">super</span>(<span style="color:#000">TransformerWithWeightTying</span>, <span style="color:#5b269a">self</span>)<span style="color:#000">.</span><span style="color:#000">__init__</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">max_seq_len</span> <span style="color:#000">=</span> <span style="color:#000">max_seq_len</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding_dim</span> <span style="color:#000">=</span> <span style="color:#000">embedding_dim</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Initializing an embedding layer.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Used to embed each token to a `embedding_dim` vector.</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Embedding</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#000">num_embeddings</span><span style="color:#000">=</span><span style="color:#000">vocab_size</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">embedding_dim</span><span style="color:#000">=</span><span style="color:#000">embedding_dim</span>,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Initializing a PositionalEncoding Layer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">positional_encoding</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Parameter</span>(<span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">zeros</span>(<span style="color:#1c01ce">1</span>, <span style="color:#000">max_seq_len</span>, <span style="color:#000">embedding_dim</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Initializing a Transformer Model</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">transformer</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Transformer</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#000">d_model</span><span style="color:#000">=</span><span style="color:#000">embedding_dim</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">nhead</span><span style="color:#000">=</span><span style="color:#000">num_heads</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">num_encoder_layers</span><span style="color:#000">=</span><span style="color:#000">num_layers</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">num_decoder_layers</span><span style="color:#000">=</span><span style="color:#000">num_layers</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">dim_feedforward</span><span style="color:#000">=</span><span style="color:#1c01ce">4</span> <span style="color:#000">*</span> <span style="color:#000">embedding_dim</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">batch_first</span><span style="color:#000">=</span><span style="color:#a90d91">True</span>,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Defining the Output Projection Layer (embedding_dim -&gt; vocab_size)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">output_layer</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">in_features</span><span style="color:#000">=</span><span style="color:#000">embedding_dim</span>, <span style="color:#000">out_features</span><span style="color:#000">=</span><span style="color:#000">vocab_size</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Tie the weights between embedding &amp; output layer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">output_layer</span><span style="color:#000">.</span><span style="color:#000">weight</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding</span><span style="color:#000">.</span><span style="color:#000">weight</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">forward</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">src</span>, <span style="color:#000">tgt</span>, <span style="color:#000">src_mask</span><span style="color:#000">=</span><span style="color:#a90d91">None</span>, <span style="color:#000">tgt_mask</span><span style="color:#000">=</span><span style="color:#a90d91">None</span>, <span style="color:#000">memory_mask</span><span style="color:#000">=</span><span style="color:#a90d91">None</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Add embeddings and positional encodings to source and target</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">src_embeddings</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding</span>(<span style="color:#000">src</span>) <span style="color:#000">+</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">positional_encoding</span>[:, : <span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">1</span>), :]
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tgt_embeddings</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding</span>(<span style="color:#000">tgt</span>) <span style="color:#000">+</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">positional_encoding</span>[:, : <span style="color:#000">tgt</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">1</span>), :]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Pass through the transformer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">transformer_output</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">transformer</span>(
+</span></span><span style="display:flex;"><span>            <span style="color:#000">src_embeddings</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">tgt_embeddings</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">src_mask</span><span style="color:#000">=</span><span style="color:#000">src_mask</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">tgt_mask</span><span style="color:#000">=</span><span style="color:#000">tgt_mask</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#000">memory_mask</span><span style="color:#000">=</span><span style="color:#000">memory_mask</span>,
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Compute logits using the tied output layer</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">logits</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">output_layer</span>(<span style="color:#000">transformer_output</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">logits</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">_generate_square_subsequent_mask</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">sz</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#c41a16">&#34;&#34;&#34;Generates an upper-triangular matrix of -inf, with zeros on diag.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">triu</span>(<span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">full</span>((<span style="color:#000">sz</span>, <span style="color:#000">sz</span>), <span style="color:#a90d91">float</span>(<span style="color:#c41a16">&#34;-inf&#34;</span>)), <span style="color:#000">diagonal</span><span style="color:#000">=</span><span style="color:#1c01ce">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">generate</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">src</span>, <span style="color:#000">start_token_id</span>, <span style="color:#000">end_token_id</span>, <span style="color:#000">max_length</span><span style="color:#000">=</span><span style="color:#1c01ce">50</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#000">src_mask</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">_generate_square_subsequent_mask</span>(<span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">1</span>))<span style="color:#000">.</span><span style="color:#000">to</span>(<span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">device</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Encode the source sequence</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">src_embeddings</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding</span>(<span style="color:#000">src</span>) <span style="color:#000">+</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">positional_encoding</span>[:, : <span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">1</span>), :]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Represents the encoded source information</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">memory</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">transformer</span><span style="color:#000">.</span><span style="color:#000">encoder</span>(<span style="color:#000">src_embeddings</span>, <span style="color:#000">mask</span><span style="color:#000">=</span><span style="color:#000">src_mask</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Initialize target sequence with start token</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">tgt_tokens</span> <span style="color:#000">=</span> (
+</span></span><span style="display:flex;"><span>            <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">ones</span>((<span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">0</span>), <span style="color:#1c01ce">1</span>), <span style="color:#000">dtype</span><span style="color:#000">=</span><span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">long</span>, <span style="color:#000">device</span><span style="color:#000">=</span><span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">device</span>) <span style="color:#000">*</span> <span style="color:#000">start_token_id</span>
+</span></span><span style="display:flex;"><span>        )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Starting the token generation process..</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">for</span> <span style="color:#000">_</span> <span style="color:#000">in</span> <span style="color:#a90d91">range</span>(<span style="color:#000">max_length</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Generating target sequence embeddings.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">tgt_embeddings</span> <span style="color:#000">=</span> (
+</span></span><span style="display:flex;"><span>                <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">embedding</span>(<span style="color:#000">tgt_tokens</span>) <span style="color:#000">+</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">positional_encoding</span>[:, : <span style="color:#000">tgt_tokens</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">1</span>), :]
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Generating a `tgt_mask` to ensure that the model cannot look ahead.</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">tgt_mask</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">_generate_square_subsequent_mask</span>(<span style="color:#000">tgt_tokens</span><span style="color:#000">.</span><span style="color:#000">size</span>(<span style="color:#1c01ce">1</span>))<span style="color:#000">.</span><span style="color:#000">to</span>(<span style="color:#000">src</span><span style="color:#000">.</span><span style="color:#000">device</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Decode the target sequence</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">output</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">transformer</span><span style="color:#000">.</span><span style="color:#000">decoder</span>(
+</span></span><span style="display:flex;"><span>                <span style="color:#000">tgt</span><span style="color:#000">=</span><span style="color:#000">tgt_embeddings</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#000">memory</span><span style="color:#000">=</span><span style="color:#000">memory</span>,
+</span></span><span style="display:flex;"><span>                <span style="color:#000">tgt_mask</span><span style="color:#000">=</span><span style="color:#000">tgt_mask</span>,
+</span></span><span style="display:flex;"><span>            )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Compute logits, i.e., Output Projection</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">logits</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">output_layer</span>(<span style="color:#000">output</span>[:, <span style="color:#000">-</span><span style="color:#1c01ce">1</span>, :])  <span style="color:#177500"># Get the last token&#39;s logits</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Apply the softmax function to the logits to obtain probabilities</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">probs</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">softmax</span>(<span style="color:#000">logits</span>, <span style="color:#000">dim</span><span style="color:#000">=-</span><span style="color:#1c01ce">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Greedy decoding: pick the token with the highest probability</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">next_token</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">argmax</span>(<span style="color:#000">probs</span>, <span style="color:#000">dim</span><span style="color:#000">=-</span><span style="color:#1c01ce">1</span>)<span style="color:#000">.</span><span style="color:#000">unsqueeze</span>(<span style="color:#1c01ce">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Append the predicted token to the target sequence</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">tgt_tokens</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">cat</span>([<span style="color:#000">tgt_tokens</span>, <span style="color:#000">next_token</span>], <span style="color:#000">dim</span><span style="color:#000">=</span><span style="color:#1c01ce">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#177500"># Check for end token</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a90d91">if</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">all</span>(<span style="color:#000">next_token</span> <span style="color:#000">==</span> <span style="color:#000">end_token_id</span>):
+</span></span><span style="display:flex;"><span>                <span style="color:#a90d91">break</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">tgt_tokens</span>
+</span></span></code></pre></div><p>This model with the following configuration</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#000">vocab_size</span> <span style="color:#000">=</span> <span style="color:#1c01ce">10000</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">embedding_dim</span> <span style="color:#000">=</span> <span style="color:#1c01ce">512</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">num_heads</span> <span style="color:#000">=</span> <span style="color:#1c01ce">8</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">num_layers</span> <span style="color:#000">=</span> <span style="color:#1c01ce">6</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">max_seq_len</span> <span style="color:#000">=</span> <span style="color:#1c01ce">50</span>
+</span></span></code></pre></div><p>has <code>54,390,544</code> parameters. If we remove the line from the code that performs weight tying, the model gains <code>26000</code> additional parameters, i.e., <code>54,416,144</code> parameters.</p>
+<p>Suppose we&rsquo;re using the above model to translate English sentences to French.</p>
+<ol>
+<li>Source Sentence: &ldquo;I love coding&rdquo;</li>
+<li>Tokenized Source: <code>[101, 102, 103]</code> (where each number represents a word)</li>
+<li>Generation Process:
+<ol>
+<li>Start with <code>&lt;SOS&gt;</code>, i.e., Start of Sentence Token.</li>
+<li>tgt_tokens = <code>[&lt;SOS&gt;]</code>. This is the initial model output. Once we begin the inference process, we append the model&rsquo;s output to this list.</li>
+</ol>
+</li>
+<li>First Iteration: The model predicts the probability distribution for the next word after <code>&lt;SOS&gt;</code>. Suppose it predicts high probability for &ldquo;<strong>J&rsquo;</strong>&rdquo; (French for &ldquo;I&rdquo;). We append &ldquo;<strong>J&rsquo;</strong>&rdquo; to <code>tgt_tokens</code>. Second Iteration: <code>tgt_tokens = [&lt;SOS&gt;, &quot;J'&quot;]</code></li>
+<li>The model now predicts the next word after &ldquo;<strong>J&rsquo;</strong>&rdquo;. Suppose it predicts &ldquo;<strong>aime</strong>&rdquo; (&ldquo;love&rdquo;). We append &ldquo;<strong>aime</strong>&rdquo; to <code>tgt_tokens</code>.</li>
+<li>Third Iteration: <code>tgt_tokens = [&lt;SOS&gt;, &quot;J'&quot;, &quot;aime&quot;]</code>. The model predicts the next word. Suppose it predicts <strong>&ldquo;coder&rdquo;</strong> (&ldquo;coding&rdquo;). We append <strong>&ldquo;coder&rdquo;</strong> to <code>tgt_tokens</code>.</li>
+<li>Fourth Iteration: <code>tgt_tokens = [&lt;SOS&gt;, &quot;J'&quot;, &quot;aime&quot;, &quot;coder&quot;]</code>. The model predicts the next word. Suppose it predicts <code>&lt;EOS&gt;</code> (end of sequence). We append <code>&lt;EOS&gt;</code> and terminate the generation.</li>
+<li>Final Generated Sequence: <code>[&lt;SOS&gt;, &quot;J'&quot;, &quot;aime&quot;, &quot;coder&quot;, &lt;EOS&gt;]</code></li>
+</ol>
+<blockquote>
+<p>Translation:&ldquo;J&rsquo;aime coder&rdquo;</p>
+</blockquote>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/posts/kl-divergence/">
+                        KL Divergence
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/posts/map/">
+                        mAP (Mean Average Precision)
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

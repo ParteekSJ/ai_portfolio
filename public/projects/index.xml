@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Projects on Parteek Jamwal</title>
+    <link>http://localhost:1313/projects/</link>
+    <description>Recent content in Projects on Parteek Jamwal</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Sat, 14 Sep 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/projects/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Tennis Tracking &amp; Analysis System</title>
+      <link>http://localhost:1313/projects/003-tennis-analysis-system/</link>
+      <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/003-tennis-analysis-system/</guid>
+      <description>Tennis Analysis system with YOLO, PyTorch, and Key Point Extraction.</description>
+    </item>
+    <item>
+      <title>Aero Engine Blade Anomaly Detection</title>
+      <link>http://localhost:1313/projects/002-aeroblade-detection/</link>
+      <pubDate>Thu, 29 Aug 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/002-aeroblade-detection/</guid>
+      <description>Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network.</description>
+    </item>
+    <item>
+      <title>Abstractive Summarization of Scientific Articles using Transformers (with Question-Answering)</title>
+      <link>http://localhost:1313/projects/001-abstractive-summarization/</link>
+      <pubDate>Tue, 30 Jul 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/001-abstractive-summarization/</guid>
+      <description>Abstractive Summarization of Scientific Articles using Transformers (with QA).</description>
+    </item>
+  </channel>
+</rss>

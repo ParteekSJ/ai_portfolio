@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="This blog discusses about different types of normalization used in deep learning." />
+
+<title>
+    
+    Batch Normalization | Parteek Jamwal
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/posts/normalization/" />
+
+<meta property="og:url" content="http://localhost:1313/posts/normalization/">
+  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:title" content="Batch Normalization">
+  <meta property="og:description" content="This blog discusses about different types of normalization used in deep learning.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2024-10-15T00:00:00+00:00">
+    <meta property="article:modified_time" content="2024-10-15T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.5d549282aa71faacfceb2e30934b742b30ac25d0b3a9b86aa876fd5ac00088bd.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/posts/">Posts</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/posts/normalization/">Batch Normalization</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">Batch Normalization</h1>
+    
+    <p class="single-summary">Explanation of what Batch Normalization is and how it is used.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2024-10-15T00:00:00&#43;00:00">October 15, 2024</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      9 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#introduction">Introduction</a></li>
+    <li><a href="#batch-normalization">Batch Normalization</a></li>
+    <li><a href="#bn-from-scratch">BN From Scratch</a></li>
+    <li><a href="#nnbatchnorm2d-in-pytorch"><code>nn.BatchNorm2d</code> in PyTorch</a>
+      <ul>
+        <li><a href="#what-is-track_running_stats">What is <code>track_running_stats</code>?</a></li>
+        <li><a href="#example-to-illustrate-running-statistics">Example to Illustrate Running Statistics</a></li>
+      </ul>
+    </li>
+    <li><a href="#using-batchnorm-in-lenet">Using BatchNorm in LeNet</a></li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <h2 id="introduction">Introduction</h2>
+<p>As models get deeper, it gets prone to facing the issue of exploding/vanishing gradients, that is, the gradients become too small or large hampering the network convergence. If the above problem persists, the distribution of each layer&rsquo;s input keeps varying significantly as the parameters of the previous layers keep getting updated. This slows down the training, thus requiring careful parameter/weight initialization and makes it notoriously hard to train models with saturating non-linearities. A common solution for this problem is to simply standardize the statistics (<em>means and variances</em>) of the hidden layers, i.e., all weights of a specific layer follow the same distribution. With such a setting, the optimizer is less likely to get stuck in a saturated regime. Normalizing the layer inputs can help stabilize the network by desensitizing it to different weight initialization schemes and learning rate changes, and ultimately accelerate the network training process by allowing it to converge faster.</p>
+<h2 id="batch-normalization">Batch Normalization</h2>
+<p>This is the most common type of normalization. It ensures that the distributions of activations within a layer has zero mean and unit variance, when averaged across the samples in a mini-batch $\mathcal{B}$. This helps reduce <strong>internal covariate shift</strong>, i.e., abrupt changes in the distribution of the model activations.</p>
+<p>The set of equations used in batch normalization are as follows: $$
+\begin{gather}
+\boldsymbol{\tilde{z}}_n = \gamma \odot \hat{\boldsymbol{z}}_n + \beta \\
+\hat{\boldsymbol{z}}_n = \frac{\boldsymbol{z}_n-\boldsymbol{\mu}_\mathcal{B}}{\sqrt{\boldsymbol{\sigma}^2_\mathcal{B} + \epsilon}} = \frac{\boldsymbol{z}_n-\mathbb{E}[\mathcal{B}]}{\sqrt{\mathbb{V}[\mathcal{B}] + \epsilon}} \\
+\boldsymbol{\mu}_\mathcal{B} = \frac{1}{|\mathcal{B}|}\sum_{\boldsymbol{z} \in \mathcal{B}} \boldsymbol{z} \\
+\boldsymbol{\sigma}^2_\mathcal{B} = \frac{1}{|\mathcal{B}|}\sum_{\boldsymbol{z} \in \mathcal{B}} (\boldsymbol{z} - \boldsymbol{\mu}_\mathcal{B})^2
+\end{gather}$$</p>
+<p>where</p>
+<ul>
+<li>$\mathcal{B}$ is the mini-batch consisting of example $n$,</li>
+<li>$\boldsymbol{\mu}_\mathcal{B}$ is the mean of the activations for this batch,</li>
+<li>$\boldsymbol{\sigma}^2_\mathcal{B}$ is the variance of the activations for this batch,</li>
+<li>$\hat{z}_n$ is the standardized activation vector, i.e., post-activation, $\hat{z}_n = \sigma(z_n)$,</li>
+<li>$\boldsymbol{\tilde{z}}_n$ is the shifted + scaled version; output of the batch norm layer,</li>
+<li>$\beta$ (<em>additive factor / <strong>shift</strong></em>) and $\gamma$ (<em>multiplicative factor / <strong>scale</strong></em>) are learnable parameters for this layer allowing it to restore the representation power of the network.</li>
+<li>$\epsilon=1e^{-5}$ is a small constant to avoid division by 0.</li>
+</ul>
+<p>The transformation defined above is differentiable, and hence we can pass gradients to the parameters $\beta$ (shifting parameter) and $\gamma$ (scaling parameter) and also to the input layer.</p>
+<p>Mean and Variance for the input layer can be computed once, since the data is static. However, the empirical means and variances of the internal layers keep changing, as the parameters adapt. (This is sometimes called “<strong>internal covariate shift</strong>”.) This is why we need to recompute $\boldsymbol{\mu}$ and $\sigma^2$ on each mini-batch.</p>
+<p>Batch Normalization has a beneficial effect on the gradient flow through the network, by reducing the dependence of the gradients on the scale of the parameters or their initial values. It also induces a regularization effect.</p>
+<p>During inference, we may have a single input, and so we can&rsquo;t compute the batch statistics. The standard solution to this is as follows:</p>
+<ol>
+<li>After training, compute $\boldsymbol{\mu}_l$, and $\boldsymbol{\sigma}^2_l$ for layer $l$ across all the examples in the training set (&ldquo;using the full batch&rdquo;).</li>
+<li>Freeze the parameters and add them to the list of other parameters for the layer, namely $\beta_l$ and $\gamma_l$, i.e., we save the mean and standard deviation along the shifting and scaling parameters.</li>
+<li>At test time, we use these frozen values $\boldsymbol{\mu}_l$, and $\boldsymbol{\sigma}^2_l$, rather than computing statistics from the test batch. Thus, when using a model with BN, we need to specify <code>model.train()</code> or <code>model.eval()</code></li>
+</ol>
+<h2 id="bn-from-scratch">BN From Scratch</h2>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">torch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">matplotlib.pyplot</span> <span style="color:#a90d91">as</span> <span style="color:#000">plt</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Step 1: Simulate input data</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">x</span> <span style="color:#000">=</span> (<span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">randn</span>((<span style="color:#1c01ce">20</span>, <span style="color:#1c01ce">2</span>)) <span style="color:#000">+</span> <span style="color:#1c01ce">5</span>) <span style="color:#000">*</span> <span style="color:#1c01ce">2</span>  <span style="color:#177500"># 20 2D points distributed according to N(5, 2)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Learnable Parameters (initializing with 1 and 0)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">gamma</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">Tensor</span>([<span style="color:#1c01ce">1.0</span>, <span style="color:#1c01ce">1.0</span>])  <span style="color:#177500"># scaling factor</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">beta</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">Tensor</span>([<span style="color:#1c01ce">0.0</span>, <span style="color:#1c01ce">0.0</span>])  <span style="color:#177500"># shifting factor</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">epsilon</span> <span style="color:#000">=</span> <span style="color:#1c01ce">1e-5</span>  <span style="color:#177500"># Small constant to avoid division by zero</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Step 2: Compute Mean and Variance for each feature</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">mean</span> <span style="color:#000">=</span> <span style="color:#000">x</span><span style="color:#000">.</span><span style="color:#000">mean</span>(<span style="color:#000">dim</span><span style="color:#000">=</span><span style="color:#1c01ce">0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">variance</span> <span style="color:#000">=</span> <span style="color:#000">x</span><span style="color:#000">.</span><span style="color:#000">var</span>(<span style="color:#000">dim</span><span style="color:#000">=</span><span style="color:#1c01ce">0</span>, <span style="color:#000">unbiased</span><span style="color:#000">=</span><span style="color:#a90d91">False</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Step 3: Normalize each feature</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">x_normalized</span> <span style="color:#000">=</span> (<span style="color:#000">x</span> <span style="color:#000">-</span> <span style="color:#000">mean</span>) <span style="color:#000">/</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">sqrt</span>(<span style="color:#000">variance</span> <span style="color:#000">+</span> <span style="color:#000">epsilon</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Step 4: Apply learnable scale (gamma) and shift (beta)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">y</span> <span style="color:#000">=</span> <span style="color:#000">gamma</span> <span style="color:#000">*</span> <span style="color:#000">x_normalized</span> <span style="color:#000">+</span> <span style="color:#000">beta</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Extract original and normalized features</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">x_feature1</span>, <span style="color:#000">x_feature2</span> <span style="color:#000">=</span> <span style="color:#000">x</span>[:, <span style="color:#1c01ce">0</span>]<span style="color:#000">.</span><span style="color:#000">numpy</span>(), <span style="color:#000">x</span>[:, <span style="color:#1c01ce">1</span>]<span style="color:#000">.</span><span style="color:#000">numpy</span>()
+</span></span><span style="display:flex;"><span><span style="color:#000">y_feature1</span>, <span style="color:#000">y_feature2</span> <span style="color:#000">=</span> <span style="color:#000">y</span>[:, <span style="color:#1c01ce">0</span>]<span style="color:#000">.</span><span style="color:#000">numpy</span>(), <span style="color:#000">y</span>[:, <span style="color:#1c01ce">1</span>]<span style="color:#000">.</span><span style="color:#000">numpy</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Plot the original and normalized data</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">figure</span>(<span style="color:#000">figsize</span><span style="color:#000">=</span>(<span style="color:#1c01ce">8</span>, <span style="color:#1c01ce">6</span>))
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">scatter</span>(<span style="color:#000">x_feature1</span>, <span style="color:#000">x_feature2</span>, <span style="color:#000">color</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;blue&#34;</span>, <span style="color:#000">label</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Original Data&#34;</span>, <span style="color:#000">s</span><span style="color:#000">=</span><span style="color:#1c01ce">100</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">scatter</span>(<span style="color:#000">y_feature1</span>, <span style="color:#000">y_feature2</span>, <span style="color:#000">color</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;red&#34;</span>, <span style="color:#000">label</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;Normalized Data&#34;</span>, <span style="color:#000">s</span><span style="color:#000">=</span><span style="color:#1c01ce">100</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">axhline</span>(<span style="color:#1c01ce">0</span>, <span style="color:#000">color</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;gray&#34;</span>, <span style="color:#000">linestyle</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;--&#34;</span>, <span style="color:#000">linewidth</span><span style="color:#000">=</span><span style="color:#1c01ce">0.8</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">axvline</span>(<span style="color:#1c01ce">0</span>, <span style="color:#000">color</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;gray&#34;</span>, <span style="color:#000">linestyle</span><span style="color:#000">=</span><span style="color:#c41a16">&#34;--&#34;</span>, <span style="color:#000">linewidth</span><span style="color:#000">=</span><span style="color:#1c01ce">0.8</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">title</span>(<span style="color:#c41a16">&#34;Batch Normalization Visualization&#34;</span>, <span style="color:#000">fontsize</span><span style="color:#000">=</span><span style="color:#1c01ce">16</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">xlabel</span>(<span style="color:#c41a16">&#34;Feature 1&#34;</span>, <span style="color:#000">fontsize</span><span style="color:#000">=</span><span style="color:#1c01ce">14</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">ylabel</span>(<span style="color:#c41a16">&#34;Feature 2&#34;</span>, <span style="color:#000">fontsize</span><span style="color:#000">=</span><span style="color:#1c01ce">14</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">legend</span>(<span style="color:#000">fontsize</span><span style="color:#000">=</span><span style="color:#1c01ce">12</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">grid</span>(<span style="color:#a90d91">True</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">plt</span><span style="color:#000">.</span><span style="color:#000">show</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Using PyTorch&#39;s built-in BatchNormalization</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">bn_layer</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">BatchNorm1d</span>(<span style="color:#000">num_features</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>, <span style="color:#000">eps</span><span style="color:#000">=</span><span style="color:#000">epsilon</span>, <span style="color:#000">affine</span><span style="color:#000">=</span><span style="color:#a90d91">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Only allowed if `affine` hyperparameter is set to True.</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">bn_layer</span><span style="color:#000">.</span><span style="color:#000">weight</span><span style="color:#000">.</span><span style="color:#000">data</span> <span style="color:#000">=</span> <span style="color:#000">gamma</span>  <span style="color:#177500"># Set gamma</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">bn_layer</span><span style="color:#000">.</span><span style="color:#000">bias</span><span style="color:#000">.</span><span style="color:#000">data</span> <span style="color:#000">=</span> <span style="color:#000">beta</span>  <span style="color:#177500"># Set beta</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Computing BatchNorm1d&#39;s output </span>
+</span></span><span style="display:flex;"><span><span style="color:#000">output</span> <span style="color:#000">=</span> <span style="color:#000">bn_layer</span>(<span style="color:#000">x</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Check if the implementation is correct</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">allclose</span>(<span style="color:#000">output</span>, <span style="color:#000">y</span>, <span style="color:#000">rtol</span><span style="color:#000">=</span><span style="color:#1c01ce">1e-4</span>) <span style="color:#177500"># True</span>
+</span></span></code></pre></div><p>Visually, the results are as follows:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/bn_layer_norm/bn-norm-plot.svg#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Batch Norm being applied to 20 normally distributed points. </figcaption>
+    </div>
+    
+</figure></p>
+<h2 id="nnbatchnorm2d-in-pytorch"><code>nn.BatchNorm2d</code> in PyTorch</h2>
+<p>The PyTorch documentation can be found here: <a href="https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html">https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html</a></p>
+<p>The behaviour of <code>nn.BatchNorm2D</code> changes with training/evaluation mode. In the training mode, the <code>nn.BatchNorm2D</code> layer behaves as follows:</p>
+<ul>
+<li><strong>Running Statistics</strong>: The BatchNorm layer updates its running mean and variance using the statistics of the current mini-batch. These running statistics are used for normalization during inference (when the model is in evaluation mode).</li>
+<li><strong>Normalization</strong>: During training, the normalization is based on the mean and variance of the current mini-batch.</li>
+<li><strong>Learnable Parameters</strong>: The affine transformation parameters (gamma and beta) are updated during backpropagation, provided they are trainable.</li>
+</ul>
+<p>In the test mode, the <code>nn.BatchNorm2D</code> layer behaves as follows:</p>
+<ul>
+<li><strong>Runing Statistics</strong>: The BatchNorm layer <em>stops updating</em> the running mean and variance. Instead, it uses the already-computed running mean and variance (accumulated during training) for normalization.</li>
+<li><strong>Normalization</strong>: The normalization is based on the stored running mean and variance, ensuring consistency during inference.</li>
+<li><strong>Learnable Parameters</strong>: The affine transformation parameters (gamma and beta) remain unchanged, but they are still used to scale and shift the normalized output.</li>
+</ul>
+<h3 id="what-is-track_running_stats">What is <code>track_running_stats</code>?</h3>
+<p><code>track_running_stats</code> is an argument that we pass to <code>nn.BatchNorm2D</code> layer.</p>
+<p>Also by default, during training this layer keeps <strong>running estimates</strong> of its computed mean and variance, which are then used for normalization during evaluation. The running estimates are kept with a default momentum of 0.1. If <code>track_running_stats</code> is set to <strong>False</strong>, this layer then does not keep running estimates, and batch statistics are instead used during evaluation time as well.  Mathematically, the update rule for running statistics here is: $$ \hat{x}_{\text{new}} = (1 - \text{momentum}) \times \hat{x} +  \text{momentum} \times {x}_t $$ where $\hat{x}$ is the estimated statistic and $x_t$ is the newly observed value.</p>
+<blockquote>
+<p>With a momentum of 0.1, each new batch contributes 10% to the running statistics, while the existing running statistics retain 90%. This smoothing ensures that the running estimates are stable and not overly influenced by any single batch.</p>
+</blockquote>
+<h3 id="example-to-illustrate-running-statistics">Example to Illustrate Running Statistics</h3>
+<p>The BatchNorm layer computes the mean and variance across the current mini-batch and uses these statistics to normalize the data. During inference (evaluation), we may not have a mini-batch (or it might be a single sample), thus making batch statistics unreliable. To address this, BatchNorm maintains running estimates of the mean and variance, which are accumulated during training. These running statistics are then used for normalization during evaluation to ensure consistent and stable behavior. Some key terms to remember are as follows:</p>
+<ol>
+<li><strong>Running Mean</strong> (<code>running_mean</code>): An exponential moving average of the batch means computed during training.</li>
+<li><strong>Running Variance</strong> (<code>running_var</code>): An exponential moving average of the batch variances computed during training.</li>
+<li><strong>Momentum</strong>: Determines the weight given to the new batch statistics when updating the running statistics. A higher momentum gives more weight to recent batches.</li>
+</ol>
+<p>Consider the following code:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">torch</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">torch.nn</span> <span style="color:#a90d91">as</span> <span style="color:#000">nn</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">import</span> <span style="color:#000">torch.optim</span> <span style="color:#a90d91">as</span> <span style="color:#000">optim</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Set random seed for reproducibility</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">manual_seed</span>(<span style="color:#1c01ce">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Define a simple model with BatchNorm</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">SimpleModel</span>(<span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Module</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">__init__</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">input_dim</span>, <span style="color:#000">output_dim</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">super</span>(<span style="color:#000">SimpleModel</span>, <span style="color:#5b269a">self</span>)<span style="color:#000">.</span><span style="color:#000">__init__</span>()
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">input_dim</span>, <span style="color:#000">output_dim</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">BatchNorm1d</span>(<span style="color:#000">output_dim</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">forward</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">x</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">fc</span>(<span style="color:#000">x</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn</span>(<span style="color:#000">x</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">x</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Initialize model, loss function, and optimizer</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span> <span style="color:#000">=</span> <span style="color:#000">SimpleModel</span>(<span style="color:#000">input_dim</span><span style="color:#000">=</span><span style="color:#1c01ce">3</span>, <span style="color:#000">output_dim</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>)
+</span></span><span style="display:flex;"><span><span style="color:#000">criterion</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">MSELoss</span>()
+</span></span><span style="display:flex;"><span><span style="color:#000">optimizer</span> <span style="color:#000">=</span> <span style="color:#000">optim</span><span style="color:#000">.</span><span style="color:#000">SGD</span>(<span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">parameters</span>(), <span style="color:#000">lr</span><span style="color:#000">=</span><span style="color:#1c01ce">0.1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Print initial running stats</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;Initial running_mean:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_mean</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;Initial running_var:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_var</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;-&#34;</span> <span style="color:#000">*</span> <span style="color:#1c01ce">50</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Simulate training</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">train</span>()  <span style="color:#177500"># Set to training mode</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">for</span> <span style="color:#000">epoch</span> <span style="color:#000">in</span> <span style="color:#a90d91">range</span>(<span style="color:#1c01ce">3</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Generate dummy input and target</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">input</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">randn</span>(<span style="color:#1c01ce">4</span>, <span style="color:#1c01ce">3</span>)  <span style="color:#177500"># Batch size of 4</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">target</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">randn</span>(<span style="color:#1c01ce">4</span>, <span style="color:#1c01ce">2</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Forward pass</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">output</span> <span style="color:#000">=</span> <span style="color:#000">model</span>(<span style="color:#a90d91">input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#000">loss</span> <span style="color:#000">=</span> <span style="color:#000">criterion</span>(<span style="color:#000">output</span>, <span style="color:#000">target</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Backward pass and optimization</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">optimizer</span><span style="color:#000">.</span><span style="color:#000">zero_grad</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#000">loss</span><span style="color:#000">.</span><span style="color:#000">backward</span>()
+</span></span><span style="display:flex;"><span>    <span style="color:#000">optimizer</span><span style="color:#000">.</span><span style="color:#000">step</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Print running stats after each epoch</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">f</span><span style="color:#c41a16">&#34;Epoch </span><span style="color:#c41a16">{</span><span style="color:#000">epoch</span><span style="color:#000">+</span><span style="color:#1c01ce">1</span><span style="color:#c41a16">}</span><span style="color:#c41a16">:&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;  running_mean:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_mean</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;  running_var:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_var</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;-&#34;</span> <span style="color:#000">*</span> <span style="color:#1c01ce">50</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Switch to evaluation mode</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">eval</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Print running stats before inference</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;After Training:&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;  running_mean:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_mean</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;  running_var:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_var</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;-&#34;</span> <span style="color:#000">*</span> <span style="color:#1c01ce">50</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Perform inference</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">with</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">no_grad</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_input</span> <span style="color:#000">=</span> <span style="color:#000">torch</span><span style="color:#000">.</span><span style="color:#000">randn</span>(<span style="color:#1c01ce">2</span>, <span style="color:#1c01ce">3</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#000">test_output</span> <span style="color:#000">=</span> <span style="color:#000">model</span>(<span style="color:#000">test_input</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;Inference output:&#34;</span>, <span style="color:#000">test_output</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;-&#34;</span> <span style="color:#000">*</span> <span style="color:#1c01ce">50</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#177500"># Print running stats after inference to show they haven&#39;t changed</span>
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;After Inference (Evaluation Mode):&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;  running_mean:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_mean</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;  running_var:&#34;</span>, <span style="color:#000">model</span><span style="color:#000">.</span><span style="color:#000">bn</span><span style="color:#000">.</span><span style="color:#000">running_var</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a90d91">print</span>(<span style="color:#c41a16">&#34;-&#34;</span> <span style="color:#000">*</span> <span style="color:#1c01ce">50</span>)
+</span></span></code></pre></div><p>Running this code yields the following (sample) output:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#000">Initial running_mean</span>: <span style="color:#1c01ce">tensor([0., 0.])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">Initial running_var</span>: <span style="color:#1c01ce">tensor([1., 1.])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#000">Epoch 1</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_mean</span>: <span style="color:#1c01ce">tensor([-0.0751,  0.0433])</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_var</span>: <span style="color:#1c01ce">tensor([0.9641, 0.9523])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#000">Epoch 2</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_mean</span>: <span style="color:#1c01ce">tensor([-0.1604,  0.0845])</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_var</span>: <span style="color:#1c01ce">tensor([0.9233, 0.9224])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#000">Epoch 3</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_mean</span>: <span style="color:#1c01ce">tensor([-0.2281,  0.1173])</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_var</span>: <span style="color:#1c01ce">tensor([0.8893, 0.8954])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#000">After Training</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_mean</span>: <span style="color:#1c01ce">tensor([-0.2281,  0.1173])</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_var</span>: <span style="color:#1c01ce">tensor([0.8893, 0.8954])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#000">Inference output</span>: <span style="color:#1c01ce">tensor([[ 0.0331, -0.0397],</span>
+</span></span><span style="display:flex;"><span>        [ <span style="color:#1c01ce">0.0034</span>,  <span style="color:#1c01ce">0.0036</span>]], <span style="color:#1c01ce">grad_fn=&lt;NativeBatchNormBackward0&gt;)</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span><span style="display:flex;"><span><span style="color:#000">After Inference (Evaluation Mode)</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_mean</span>: <span style="color:#1c01ce">tensor([-0.2281,  0.1173])</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#000">running_var</span>: <span style="color:#1c01ce">tensor([0.8893, 0.8954])</span>
+</span></span><span style="display:flex;"><span><span style="color:#000">---</span>-----------------------------------------------
+</span></span></code></pre></div><ul>
+<li><strong>Initial Running Stats</strong>: <code>running_mean</code> starts at $[0,0]$ and running_var at $[1,1]$.</li>
+<li><strong>After Each Epoch</strong>:
+<ul>
+<li>The <code>running_mean</code> and <code>running_var</code> gradually adjust based on the batch statistics.</li>
+<li>The updates are influenced by the <strong>momentum</strong> parameter (default is 0.1 in PyTorch), meaning the running stats are a weighted average with more emphasis on older statistics.</li>
+</ul>
+</li>
+<li><strong>After Training</strong>: The <code>running_mean</code> and <code>running_var</code> reflect the accumulated statistics from all training epochs.</li>
+<li><strong>Inference</strong>: The output is normalized using the <code>running_mean</code> and <code>running_var</code>. Crucially, after inference, the <code>running_mean</code> and <code>running_var</code> remain unchanged, demonstrating that evaluation mode does not update these statistics.</li>
+</ul>
+<h2 id="using-batchnorm-in-lenet">Using BatchNorm in LeNet</h2>
+<p>This is an illustration of BatchNorm being used in LeNet&rsquo;s model architecture.</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">class</span> <span style="color:#3f6e75">LeNetModel</span>(<span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Module</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">__init__</span>(<span style="color:#5b269a">self</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">super</span>()<span style="color:#000">.</span><span style="color:#000">__init__</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">conv1</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Conv2d</span>(<span style="color:#000">in_channels</span><span style="color:#000">=</span><span style="color:#1c01ce">1</span>, <span style="color:#000">out_channels</span><span style="color:#000">=</span><span style="color:#1c01ce">6</span>, <span style="color:#000">kernel_size</span><span style="color:#000">=</span><span style="color:#1c01ce">5</span>, <span style="color:#000">padding</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn1</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">BatchNorm2d</span>(<span style="color:#000">num_features</span><span style="color:#000">=</span><span style="color:#1c01ce">6</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">avg_pool1</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">AvgPool2d</span>(<span style="color:#000">kernel_size</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>, <span style="color:#000">stride</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">conv2</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Conv2d</span>(<span style="color:#000">in_channels</span><span style="color:#000">=</span><span style="color:#1c01ce">6</span>, <span style="color:#000">out_channels</span><span style="color:#000">=</span><span style="color:#1c01ce">16</span>, <span style="color:#000">kernel_size</span><span style="color:#000">=</span><span style="color:#1c01ce">5</span>, <span style="color:#000">padding</span><span style="color:#000">=</span><span style="color:#1c01ce">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn2</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">BatchNorm2d</span>(<span style="color:#000">num_features</span><span style="color:#000">=</span><span style="color:#1c01ce">16</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">avg_pool2</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">AvgPool2d</span>(<span style="color:#000">kernel_size</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>, <span style="color:#000">stride</span><span style="color:#000">=</span><span style="color:#1c01ce">2</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">dense1</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">in_features</span><span style="color:#000">=</span><span style="color:#1c01ce">16</span> <span style="color:#000">*</span> <span style="color:#1c01ce">5</span> <span style="color:#000">*</span> <span style="color:#1c01ce">5</span>, <span style="color:#000">out_features</span><span style="color:#000">=</span><span style="color:#1c01ce">120</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn3</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">BatchNorm1d</span>(<span style="color:#000">num_features</span><span style="color:#000">=</span><span style="color:#1c01ce">120</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">dense2</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">in_features</span><span style="color:#000">=</span><span style="color:#1c01ce">120</span>, <span style="color:#000">out_features</span><span style="color:#000">=</span><span style="color:#1c01ce">84</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn4</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">BatchNorm1d</span>(<span style="color:#000">num_features</span><span style="color:#000">=</span><span style="color:#1c01ce">84</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">dense3</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Linear</span>(<span style="color:#000">in_features</span><span style="color:#000">=</span><span style="color:#1c01ce">84</span>, <span style="color:#000">out_features</span><span style="color:#000">=</span><span style="color:#1c01ce">10</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">def</span> <span style="color:#000">forward</span>(<span style="color:#5b269a">self</span>, <span style="color:#000">x</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">sigmoid</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn1</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">conv1</span>(<span style="color:#000">x</span>)))  <span style="color:#177500"># [B, 1, 28, 28] -&gt; [B, 6, 28, 28]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">avg_pool1</span>(<span style="color:#000">x</span>)  <span style="color:#177500"># [B, 6, 28, 28] -&gt; [B, 6, 14, 14]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">sigmoid</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn2</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">conv2</span>(<span style="color:#000">x</span>)))  <span style="color:#177500"># [B, 6, 14, 14] -&gt; [B, 16, 10, 10]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">avg_pool2</span>(<span style="color:#000">x</span>)  <span style="color:#177500"># [B, 16, 10, 10] -&gt; [B, 16, 5, 5]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#000">nn</span><span style="color:#000">.</span><span style="color:#000">Flatten</span>(<span style="color:#000">start_dim</span><span style="color:#000">=</span><span style="color:#1c01ce">1</span>, <span style="color:#000">end_dim</span><span style="color:#000">=-</span><span style="color:#1c01ce">1</span>)(<span style="color:#000">x</span>)  <span style="color:#177500"># [B, 16, 5, 5] -&gt; [B, 400]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">sigmoid</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn3</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">dense1</span>(<span style="color:#000">x</span>)))  <span style="color:#177500"># [B, 400] -&gt; [B, 120]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#000">F</span><span style="color:#000">.</span><span style="color:#000">sigmoid</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">bn4</span>(<span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">dense2</span>(<span style="color:#000">x</span>)))  <span style="color:#177500"># [B, 120] -&gt; [B, 84]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#000">x</span> <span style="color:#000">=</span> <span style="color:#5b269a">self</span><span style="color:#000">.</span><span style="color:#000">dense3</span>(<span style="color:#000">x</span>)  <span style="color:#177500"># [B, 120] -&gt; [B, 10]</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">return</span> <span style="color:#000">x</span>
+</span></span></code></pre></div>
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/posts/positional_encoding/">
+                        Positional Embeddings
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+            <div class="single-pagination-container-next">
+                <div class="single-pagination-text">
+                    <a href="/posts/elbo/">
+                        ELBO: Evidence Lower Bound Optimization
+                    </a>
+                </div>
+                <div class="single-pagination-text">→</div>
+            </div>
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>
