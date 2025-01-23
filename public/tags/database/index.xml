@@ -6,8 +6,36 @@
     <description>Recent content in Database on Parteek Jamwal ♟️</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 03 Dec 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jan 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/database/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Probability Distributions &amp; their conjugate</title>
+      <link>http://localhost:1313/posts/distributions_and_their_conjugates/</link>
+      <pubDate>Sun, 19 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/distributions_and_their_conjugates/</guid>
+      <description>Probability Distributions &amp;amp; their Conjugate.</description>
+    </item>
+    <item>
+      <title>Faster R-CNN: Towards Real-Time Object Detection with Region Proposal Networks</title>
+      <link>http://localhost:1313/papers/fasterrcnn/</link>
+      <pubDate>Sat, 07 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/fasterrcnn/</guid>
+      <description>Faster RCNN Model Explained.</description>
+    </item>
+    <item>
+      <title>Fast RCNN: Fast Region-based Convolutional Network</title>
+      <link>http://localhost:1313/papers/fastrcnn/</link>
+      <pubDate>Thu, 05 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/fastrcnn/</guid>
+      <description>Fast RCNN Object Detection Model Explained.</description>
+    </item>
+    <item>
+      <title>RCNN: Regions with CNN features</title>
+      <link>http://localhost:1313/papers/rcnn/</link>
+      <pubDate>Wed, 04 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/rcnn/</guid>
+      <description>rcnn Object Detection Model Explained.</description>
+    </item>
     <item>
       <title>YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection</title>
       <link>http://localhost:1313/papers/yolov1/</link>

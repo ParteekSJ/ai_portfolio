@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en-us"
+  dir="ltr">
+
+  <head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script>
+    <meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+
+
+
+<link rel="icon" type="image/ico" href="http://localhost:1313/favicon_io//favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon_io//favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon_io//favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
+
+<meta name="description" content="This blog discusses about probability distribution and their conjugate." />
+
+<title>
+    
+    Probability Distributions &amp; their conjugate | Parteek Jamwal ♟️
+    
+</title>
+
+<link rel="canonical" href="http://localhost:1313/posts/distributions_and_their_conjugates/" />
+
+<meta property="og:url" content="http://localhost:1313/posts/distributions_and_their_conjugates/">
+  <meta property="og:site_name" content="Parteek Jamwal ♟️">
+  <meta property="og:title" content="Probability Distributions &amp; their conjugate">
+  <meta property="og:description" content="This blog discusses about probability distribution and their conjugate.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-01-19T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-01-19T00:00:00+00:00">
+    <meta property="article:tag" content="Database">
+    <meta property="article:tag" content="Java">
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/assets/combined.min.480bbb95ddf7e3381ba2b7bf29200e6a7cf114a5011345067aa9e180be2b45a6.css" media="all">
+
+
+
+  </head>
+
+  
+
+  
+  
+  
+
+  <body class="light">
+
+    <div class="content">
+      <header>
+        
+
+<div class="header">
+
+    
+
+    <h1 class="header-title">
+        <a href="http://localhost:1313/">Parteek Jamwal ♟️</a>
+    </h1>
+
+    <div class="flex">
+        
+
+        
+        
+      
+        <p class="small ">
+            <a href="/" >
+                /home
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/posts" >
+                /posts
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/papers" >
+                /papers
+            </a>
+        </p>
+        
+      
+        <p class="small ">
+            <a href="/projects" >
+                /projects
+            </a>
+        </p>
+        
+        
+    </div>
+
+    
+
+</div>
+
+      </header>
+
+      <main class="main">
+        
+
+
+
+
+
+<div class="breadcrumbs">
+    
+    <a href="/">Home</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a href="/posts/">Posts</a>
+    <span class="breadcrumbs-separator"> > </span>
+    
+    <a class="breadcrumbs-current" href="/posts/distributions_and_their_conjugates/">Probability Distributions &amp; their conjugate</a>
+</div>
+
+
+
+<div  class="autonumber" >
+
+  <div class="single-intro-container">
+
+    
+
+    <h1 class="single-title">Probability Distributions &amp; their conjugate</h1>
+    
+    <p class="single-summary">Probability Distributions &amp; their Conjugate.</p>
+    
+
+    
+
+    <p class="single-readtime">
+      
+      
+      
+      <time datetime="2025-01-19T00:00:00&#43;00:00">January 19, 2025</time>
+      
+
+      
+      &nbsp; · &nbsp;
+      7 min read
+      
+    </p>
+
+  </div>
+
+  
+
+  
+
+  
+  <aside class="toc">
+    <p><strong>Table of contents</strong></p>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#bernoulli-distribution">Bernoulli Distribution</a></li>
+    <li><a href="#categorical-distribution">Categorical Distribution</a></li>
+    <li><a href="#univariate-normal-distribution">Univariate Normal Distribution</a></li>
+    <li><a href="#multivariate-normal-distribution">Multivariate Normal Distribution</a></li>
+    <li><a href="#conjugate-distributions-distribution-of-the-parameters">Conjugate Distributions (Distribution of the Parameters)</a></li>
+    <li><a href="#importance-of-conjugate-distribution">Importance of Conjugate Distribution</a></li>
+    <li><a href="#conjugate-distribution-beta-distribution">Conjugate Distribution: Beta Distribution</a></li>
+    <li><a href="#conjugate-distribution-dirichlet-distribution">Conjugate Distribution: Dirichlet Distribution</a></li>
+    <li><a href="#conjugate-distribution-normal-inverse-gamma-distribution">Conjugate Distribution: Normal Inverse Gamma Distribution</a></li>
+    <li><a href="#conjugate-distribution-normal-inverse-wishart">Conjugate Distribution: Normal Inverse Wishart</a></li>
+  </ul>
+</nav>
+  </aside>
+  
+
+  
+
+  <div class="single-content">
+    <h2 id="bernoulli-distribution">Bernoulli Distribution</h2>
+<p>A Bernoulli random variable takes only two possible outcomes, typically denoted as 0 or 1. The probability of observing $X=1$ is given by a parameter $\lambda\in[0,1]$ known as the &ldquo;probability of success&rdquo;.  Thus
+$$ \begin{align*}
+p(X=0|\lambda) = 1-\lambda \\
+p(X=1|\lambda) = \lambda\end{align*}$$</p>
+<p>The probability mass function (PMF) can be written as $$p(x) = \lambda^x\cdot (1-\lambda)^x$$.
+This is the simplest discrete distribution, often used to model binary outcomes like coin flips (head/tail), success/failure in a trial, or on/off states</p>
+<h2 id="categorical-distribution">Categorical Distribution</h2>
+<p>Categorical Distribution generalizes the Bernoulli distribution from two outcomes to $K$ possible outcomes. It&rsquo;s the distribution of a random variable $X$ that can take exactly one of $K$ discrete states, where each state $k$ is associated with a probability $\lambda_k$.</p>
+<ul>
+<li>Each $\lambda_k \in [0,1]$ and $\sum_{k=1}^K \lambda_k = 1$</li>
+<li>$X$ is often represented as a one-hot vector $\mathbf{x}$, where exactly one element is 1 and all others are 0.</li>
+</ul>
+<p>For example, if $K=5$, a possible outcome is $\mathbf{x}=[0,0,1,0,0]^T$ means that the third state has occurred. The parameters $\Lambda=[\lambda_1, \lambda_2, \lambda_3, \lambda_4, \lambda_5]^T$ represent the probability that the random variable takes each corresponding value. The PMF can be written as follows:
+$$ p(\boldsymbol{X}=\boldsymbol{e}_k|\lambda) = \lambda_k $$ or $$ \begin{align*} p(\boldsymbol{x}) = \prod_{k=1}^K \lambda_k^{x_k} = \lambda_k \ p(\boldsymbol{x}) = \text{Cat}_x[\lambda] \end{align*} $$
+In the following equation, $p(\boldsymbol{x}) = \prod_{k=1}^K \lambda_k^{x_k} = \lambda_k$, $x_k=1$ if and only if the $k \in K$ is selected. The remaining terms cancel out.</p>
+<h2 id="univariate-normal-distribution">Univariate Normal Distribution</h2>
+<p>This is also known as Gaussian distribution. This distribution is used to describe a single continuous variable, $X$, i.e., $x\in\mathbb{R}$. It is parameterized by two values</p>
+<ul>
+<li>$\mu \in \mathbb{R}$ (<em>mean</em>)</li>
+<li>$\sigma^2 &gt; 0$ (<em>variance</em>)
+The PDF can be described as follows: $$ p(X=a|\mu,\sigma^2) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp - \frac{(a-\mu)^2}{2\sigma^2}, a\in\mathbb{R} $$OR
+$$ p(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp - \frac{(x-\mu)^2}{2\sigma^2} $$</li>
+</ul>
+<h2 id="multivariate-normal-distribution">Multivariate Normal Distribution</h2>
+<p>This distribution can be used to describe $D$-dimensional continuous variable $\boldsymbol{X}$, i.e., $\boldsymbol{x}\in\mathbb{R}^D$. Such a distribution is parameterized by</p>
+<ul>
+<li>$\boldsymbol{\mu} \in \mathbb{R}^D$ ($D$-dimensional mean), and</li>
+<li>$D\times D$ positive definite covariance matrix $\Sigma\in\mathbb{R}_{+}^{D\times D}$
+The PDF can be described as follows: $$ p(\boldsymbol{X}=\boldsymbol{a}\mid\boldsymbol{\mu},\boldsymbol{\Sigma})=\frac{1}{(2\pi)^{D/2}|\boldsymbol{\Sigma}|^{1/2}}\exp{-0.5(\boldsymbol{a}-\boldsymbol{\mu})^T\boldsymbol{\Sigma}^{-1}(\boldsymbol{a}-\boldsymbol{\mu})},\boldsymbol{a}\in\mathbb{R}^D $$</li>
+</ul>
+<h2 id="conjugate-distributions-distribution-of-the-parameters">Conjugate Distributions (Distribution of the Parameters)</h2>
+<p>Conjugate distributions model the parameters of the probability distribution.  It is analogous to prior distribution of a parameter of a distribution. Product of a probability distribution and its conjugate has the same form as the conjugate times a constant.</p>
+<blockquote>
+<p><strong>Parameters of the conjugate distribution</strong> are known as <strong>hyperparameters</strong> because they control the parameter distributions. These parameters aren&rsquo;t learned from data but empirically set.</p>
+</blockquote>
+<p>For example:</p>
+<ol>
+<li>For a Bernoulli Distribution with domain: $x\in{0,1}$, the parameters are best modeled by beta distribution</li>
+<li>For a Bernoulli Distribution with domain: $x\in{1,2,\dots,K}$, the parameters are best modeled by Dirichlet distribution.</li>
+<li>For a univariate normal distribution with domain $x\in\mathbb{R}$, the parameters are modeled by normal inverse gamma distribution.</li>
+<li>For a multivariate normal distribution with domain $\boldsymbol{x}\in\mathbb{R}^k$, the parameters are modeled by normal inverse Wishart distribution.</li>
+</ol>
+<h2 id="importance-of-conjugate-distribution">Importance of Conjugate Distribution</h2>
+<p>Conjugate distribution is crucial to learning/modeling the parameters $\theta$ of a probability distribution given observed data, i.e., $p(\theta|x)$. Recalling, Bayes&rsquo; rule we obtain: $$ p(\theta|x) = \frac{p(x|\theta) p(\theta)}{p(x)} = \frac{p(x|\theta) p(\theta)}{\int p(x,\theta) d\theta} = \frac{p(x|\theta) p(\theta)}{\int p(x|\theta) p(\theta) d\theta}  $$</p>
+<p>We choose a prior distribution $p(\theta)$ that is conjugate to the likelihood. If the prior is not a conjugate to the likelihood, then the posterior distribution $p(\theta|x)$ doesn&rsquo;t have a closed-form solution and hence becomes <strong>intractable</strong>. Thus, this implies that the posterior must have the same form as the conjugate prior distribution, i.e., closed-form. The normalizer (<strong>evidence</strong>) also consists of the likelihood and the prior distribution. The posterior must be a distribution which implies that evidence must equal constant $\kappa$ from conjugate relation.</p>
+<p>Marginalizing over parameters, i.e., <strong>Predictive Distribution</strong> $$p(x^*|\boldsymbol{x})  = \int p(x^*|\theta) p(\theta|x) d\theta$$ where</p>
+<ul>
+<li>$\boldsymbol{x}$ denotes the observed data points, and</li>
+<li>$x^*$ is the new, unobserved data point you want to predict</li>
+</ul>
+<p>$p(x^*|\boldsymbol{x})$ represents the predictive distribution in a Bayesian framework. This distribution allows you to predict a future observation $x^*$ after having observed some data $\boldsymbol{x}$, by integrating over the uncertainty in the model parameters $\theta$. To predict a new data point, we use $p(x^*|\boldsymbol{x})  = \int p(x^*|\theta) p(\theta|x) d\theta$ where</p>
+<ul>
+<li>$p(x^*|\theta)$ - Likelihood of the new observation $x^*$ given the particular value of the parameters $\theta$. If we knew $\theta$ exactly, this would be straightforward to compute.</li>
+<li>$p(\theta|\boldsymbol{x})$ - Posterior distribution of $\theta$ given observed data $\boldsymbol{x}$. It represents what you believe about the parameter values, incorporating your prior knowledge and the observed data</li>
+<li>$\int p(x^*|\theta) p(\theta|x) d\theta$ - Since we aren&rsquo;t certain about $\theta$, we weigh the likelihood of $x^*$ for each possible parameter setting $\theta$ by how probable that parameter setting is, according to the posterior. In other words, you average (integrate) over all plausible parameter values, weighted by their posterior probability, to obtain a final predictive distribution for $x^*$.</li>
+</ul>
+<p>In classical (frequentist) statistics, one might plug in a single estimate $\hat{\theta}$ (like the maximum likelihood estimate or a point estimate from a fitted model) into the likelihood $p(x^*|\hat{\theta})$ to predict. However, this ignores uncertainty in $\theta$. If there is substantial uncertainty about the parameters, a single $\hat{\theta}$ could be misleading.</p>
+<p>The Bayesian predictive distribution $p(x^*|\boldsymbol{x})$, however, integrates over all possible parameter values according to their posterior distribution, leading to a more robust and honest representation of uncertainty. This approach naturally incorporates parameter uncertainty into predictions. It means that if you&rsquo;re unsure about $\theta$, your predictive distribution $p(x^*|\boldsymbol{x})$ will be more spread out, reflecting that uncertainty.</p>
+<p>Instead of using a single fixed parameter estimate (<em>such as MLE</em>), we hold a distribution over $\theta$. Each time we incorporate new data, this distribution (the posterior) changes. We then predict the future outcome by integrating over this revised posterior. This naturally updates as we get more data. Initially, the predictive distribution might be uncertain and close to 50/50 (if the prior is centered at 0.5). As data shows more heads, both the posterior mean $\theta$ and predictive probability for the next head become larger. We are using the entire posterior distribution of parameters to make predictions, not just a single point estimate.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/distribution_and_conjugate/L1-PredictiveDistribution.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Predictive Distribution Demonstration. </figcaption>
+    </div>
+    
+</figure></p>
+<p>Marginalizing over parameters is used because</p>
+<ol>
+<li>accounts for uncertainty in the parameters $\theta$.</li>
+<li>provides a complete and coherent way to make predictions about new data $x^*$ in a Bayesian context.</li>
+<li>avoids overconfidence that can arise by conditioning on a single, possibly imprecise parameter estimate.</li>
+</ol>
+<ul>
+<li>$p(\theta|x)$ (<em>posterior distribution</em>) is chosen as conjugate to the other term.</li>
+<li>Integral becomes easy &ndash; the product becomes a constant times a distribution.</li>
+</ul>
+<p>The derivation of the predictive distribution integration is as follows:</p>
+<p>$$ \begin{align*}
+p(x^*)&amp;=\frac{p(x^*,x)}{p(x)}  \\
+\end{align*}$$</p>
+<!-- raw HTML omitted -->
+<h2 id="conjugate-distribution-beta-distribution">Conjugate Distribution: Beta Distribution</h2>
+<blockquote>
+<p>Beta distribution is the conjugate distribution of <strong>Bernoulli distribution</strong>.</p>
+</blockquote>
+<p>It’s often used as a prior distribution for the parameter of a Bernoulli or Binomial distribution in a Bayesian framework. The distribution is defined over the Bernoulli distribution parameter $\lambda\in[0,1]$, i.e., $$\begin{align*} p(\lambda) = \frac{\Gamma[\alpha+\beta]}{\Gamma[\alpha]\Gamma[\beta]}\lambda^{\alpha-1} (1-\lambda)^{\beta-1} \ p(\lambda)=\text{Beta}_\lambda[\alpha,\beta] \end{align*} $$For the beta distribution, parameters $\alpha,\beta$ are the hyperparameters that we can fiddle with.</p>
+<ul>
+<li>$\alpha$ can be viewed as representing the number of &ldquo;successes&rdquo; you’ve seen (or your prior guess).</li>
+<li>$\beta$ can be viewed as representing the number of &ldquo;failures&rdquo;.</li>
+</ul>
+<p>The gamma function is defined as follows; $$ \begin{align**} \Gamma(z)=\int_{0}^{\infty}t^{z-1}e^{-t}dt,\quad z\in\mathbb{C} \ \Gamma(n)=(n-1)!,\quad n\in\mathbb{R}_{&gt;0}  \end{align**} $$If we have no prior knowledge of the prior distribution, we can use $\alpha,\beta=1,1$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/distribution_and_conjugate/L1-Beta-BinomialDist.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Beta-Binomial Distribution. </figcaption>
+    </div>
+    
+</figure></p>
+<h2 id="conjugate-distribution-dirichlet-distribution">Conjugate Distribution: Dirichlet Distribution</h2>
+<p>Dirichlet distribution is the conjugate distribution of <strong>Categorical distribution</strong>. It is defined over the $K$ parameters of the categorical distribution, $\lambda_k\in[0,1]$, where $\sum_k \lambda_k = 1$. The conjugate distribution can be defined as follows: $$ \begin{aligned}&amp;p(\lambda_{1},&hellip;,\lambda_{K})=\frac{\Gamma[\sum_{k=1}^{K}\alpha_{k}]}{\prod_{k=1}^{K}\Gamma[\alpha_{k}]}\prod_{k=1}^{K}\lambda_{k}^{\alpha_{k}-1},\&amp; p(\lambda_{1},&hellip;,\lambda_{K})=\mathrm{Dir}_{\lambda_{1&hellip;K}}[\alpha_{1},&hellip;\alpha_{K}] \end{aligned} $$
+The hyperparameters that we have for the Dirichlet distribution are $[\alpha_1,\dots,\alpha_k]$. If we have no prior information, all alphas can be set to 1.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/distribution_and_conjugate/L1-Dirichlet-CategoricalDist.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Dirichlet Distribution. </figcaption>
+    </div>
+    
+</figure></p>
+<p>Vertices of the simplex can be used to denote the individual categories.</p>
+<h2 id="conjugate-distribution-normal-inverse-gamma-distribution">Conjugate Distribution: Normal Inverse Gamma Distribution</h2>
+<p>Normal Inverse Gamma distribution is the conjugate distribution of <strong>Univariate Normal distribution</strong>. This distribution is described over parameters $\mu,\sigma^2 &gt;0$ of the univariate distribution. $$ \begin{aligned}&amp;p(\mu,\sigma^2\mid\mu_0,\lambda,\alpha,\beta)=\frac{\sqrt{\lambda}}{\sigma\sqrt{2\pi}}\frac{\beta^\alpha}{\Gamma(\alpha)}(\sigma^2)^{-(\alpha+1)}\exp\left(-\frac{\beta}{\sigma^2}\right)\exp\left(-\frac{\lambda(\mu-\mu_0)^2}{2\sigma^2}\right)\&amp;p(\mu,\sigma^{2})=\text{ NormInvGam}_{\mu,\sigma^{2}}[\mu_0,\lambda,\alpha,\beta]\end{aligned} $$Such a conjugate distribution consists of 4 hyperparameters $\alpha,\beta,\gamma,\delta$.</p>
+<ul>
+<li>$\mu_0 \in \mathbb{R}$ is the prior mean of $μ$.</li>
+<li>$\lambda&gt;0$ influences the confidence in $μ$​.</li>
+<li>$α&gt;0$ and $β&gt;0$ shape the distribution over $σ^2$.
+![[L1-Normal-Inverse-Gamma-Dist_UnivaraiateNormalDist.png]]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/distribution_and_conjugate/L1-Normal-Inverse-Gamma-Dist_UnivaraiateNormalDist.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Normal Inverse Gamma Distribution. </figcaption>
+    </div>
+    
+</figure></li>
+</ul>
+<h2 id="conjugate-distribution-normal-inverse-wishart">Conjugate Distribution: Normal Inverse Wishart</h2>
+<p>Normal Inverse Wishart is the conjugate distribution of <strong>Multivariate Normal distribution</strong>. It is defined on the parameters $\boldsymbol{\mu}$ and $\boldsymbol{\Sigma}$ of the multivariate distribution. $$\begin{aligned}&amp;p(\boldsymbol{\mu},\boldsymbol{\Sigma})=\frac{\gamma^{D/2}|\boldsymbol{\Psi}|^{\alpha/2}\exp[-0.5\left(\mathrm{Tr}[\boldsymbol{\Psi}\boldsymbol{\Sigma}^{-1}]+\gamma(\boldsymbol{\mu}-\boldsymbol{\delta})^{T}\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}-\boldsymbol{\delta})\right)]}{2^{\alpha D/2}(2\pi)^{D/2}|\boldsymbol{\Sigma}|^{(\alpha+D+2)/2}\Gamma_{D}[\alpha/2]}\&amp;p(\boldsymbol{\mu},\boldsymbol{\Sigma})=\mathrm{NorlWis}_{\boldsymbol{\mu},\boldsymbol{\Sigma}}[\alpha,\boldsymbol{\Psi},\gamma,\boldsymbol{\delta}]\end{aligned}  $$
+Such a distribution consists of 4 hyperparameters:</p>
+<ul>
+<li>a positive scalar $\alpha$</li>
+<li>a positive definite matrix $\Psi \in \mathbb{R}_+^{D\times D}$</li>
+<li>a positive scalar $\gamma$</li>
+<li>vector $\delta \in \mathbb{R}^D$</li>
+</ul>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/posts/distribution_and_conjugate/L1-Normal-Inverse-Wishart-Dist_MultivariateNormalDist.png#dark%23small">
+    </div>
+
+    
+    <div class="caption-container">
+        <figcaption> Normal Inverse Wishart Distribution. </figcaption>
+    </div>
+    
+</figure></p>
+<p>By changing the hyperparameters for the Normal Inverse Wishart distribution, we get different distributions for the mean and variance vectors.</p>
+
+    
+  </div>
+
+  
+
+
+  
+
+  
+  
+
+<div class="single-pagination">
+    <hr />
+
+    <div class="flex">
+
+        <div class="single-pagination-prev">
+            
+            <div class="single-pagination-container-prev">
+                <div class="single-pagination-text">←</div>
+                <div class="single-pagination-text">
+                    <a href="/posts/weight_tying/">
+                        Weight Tying
+                    </a>
+                </div>
+            </div>
+            
+        </div>
+
+        <div class="single-pagination-next">
+            
+        </div>
+
+    </div>
+
+    <hr />
+</div>
+
+
+
+  
+
+  
+
+  
+  <div class="back-to-top">
+    <a href="#top">
+      back to top
+    </a>
+  </div>
+  
+
+</div>
+
+
+      </main>
+    </div>
+
+    <footer>
+      
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css">
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js"></script>
+
+<script defer
+  src="https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body);"></script>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    renderMathInElement(document.body, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false }
+      ]
+    });
+  });
+</script>
+
+    </footer>
+    
+  </body>
+
+  <script>
+
+  function isAuto() {
+    return document.body.classList.contains("auto");
+  }
+
+  function setTheme() {
+    if (!isAuto()) {
+      return
+    }
+
+    document.body.classList.remove("auto");
+    let cls = "light";
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      cls = "dark";
+    }
+
+    document.body.classList.add(cls);
+  }
+
+  function invertBody() {
+    document.body.classList.toggle("dark");
+    document.body.classList.toggle("light");
+  }
+
+  if (isAuto()) {
+    window.matchMedia('(prefers-color-scheme: dark)').addListener(invertBody);
+  }
+
+  setTheme();
+
+</script>
+
+</html>

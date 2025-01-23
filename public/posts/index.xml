@@ -6,8 +6,15 @@
     <description>Recent content in Posts on Parteek Jamwal ♟️</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 26 Nov 2024 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Sun, 19 Jan 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Probability Distributions &amp; their conjugate</title>
+      <link>http://localhost:1313/posts/distributions_and_their_conjugates/</link>
+      <pubDate>Sun, 19 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/distributions_and_their_conjugates/</guid>
+      <description>Probability Distributions &amp;amp; their Conjugate.</description>
+    </item>
     <item>
       <title>Weight Tying</title>
       <link>http://localhost:1313/posts/weight_tying/</link>
