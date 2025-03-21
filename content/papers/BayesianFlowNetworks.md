@@ -8,6 +8,7 @@ readTime: true
 autonumber: true
 math: true
 tags: ["database", "java"]
+draft: True
 showTags: false
 hideBackToTop: false
 ---

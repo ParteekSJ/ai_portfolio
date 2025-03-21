@@ -10,4 +10,5 @@ math: true
 tags: ["database", "java"]
 showTags: false
 hideBackToTop: false
+draft: True
 ---

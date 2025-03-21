@@ -9,6 +9,7 @@ autonumber: true
 math: true
 tags: ["database", "java"]
 showTags: false
+draft: True
 hideBackToTop: false
 ---
 
