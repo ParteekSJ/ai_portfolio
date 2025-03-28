@@ -27,8 +27,8 @@ AI Lead 🦾 at Lockheed Martin CISS, Abu Dhabi, United Arab Emirates 🇦🇪. 
 """
 
 # Collection to display on home
-homeCollectionTitle = 'Posts'
-homeCollection = 'posts'
+homeCollectionTitle = 'Projects'
+homeCollection = 'projects'
 
 # Lists parameters
 paginationSize = 100
