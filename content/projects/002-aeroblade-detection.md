@@ -1,6 +1,6 @@
 ---
 title: "Aero Engine Blade Anomaly Detection"
-date: "2024-08-29"
+date: "2024-10-29"
 summary: "Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network."
 description: "An LSM Tree overview and Java implementation."
 toc: true

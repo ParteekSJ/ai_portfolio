@@ -6,14 +6,35 @@
     <description>Recent content in Java on Parteek Jamwal ♟️</description>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Sun, 19 Jan 2025 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 21 Feb 2025 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/java/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale</title>
+      <link>http://localhost:1313/papers/vit/</link>
+      <pubDate>Fri, 21 Feb 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/vit/</guid>
+      <description>Vision Transformer Model Explained.</description>
+    </item>
     <item>
       <title>Probability Distributions &amp; their conjugate</title>
       <link>http://localhost:1313/posts/distributions_and_their_conjugates/</link>
       <pubDate>Sun, 19 Jan 2025 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/distributions_and_their_conjugates/</guid>
       <description>Probability Distributions &amp;amp; their Conjugate.</description>
+    </item>
+    <item>
+      <title>Transformer: Attention Is All You Need</title>
+      <link>http://localhost:1313/papers/transformer/</link>
+      <pubDate>Wed, 15 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/transformer/</guid>
+      <description>Transformer Model Explained.</description>
+    </item>
+    <item>
+      <title>Tennis Tracking &amp; Analysis System</title>
+      <link>http://localhost:1313/projects/003-tennis-analysis-system/</link>
+      <pubDate>Sat, 14 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/003-tennis-analysis-system/</guid>
+      <description>Tennis Analysis system with YOLO, PyTorch, and Key Point Extraction.</description>
     </item>
     <item>
       <title>YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection</title>
@@ -37,6 +58,13 @@
       <description>KL Divergence Explained (with Derivation).</description>
     </item>
     <item>
+      <title>Aero Engine Blade Anomaly Detection</title>
+      <link>http://localhost:1313/projects/002-aeroblade-detection/</link>
+      <pubDate>Tue, 29 Oct 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/002-aeroblade-detection/</guid>
+      <description>Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network.</description>
+    </item>
+    <item>
       <title>ELBO: Evidence Lower Bound Optimization</title>
       <link>http://localhost:1313/posts/elbo/</link>
       <pubDate>Tue, 22 Oct 2024 00:00:00 +0000</pubDate>
@@ -58,25 +86,11 @@
       <description>BCE and CE Loss Explained.</description>
     </item>
     <item>
-      <title>Tennis Tracking &amp; Analysis System</title>
-      <link>http://localhost:1313/projects/003-tennis-analysis-system/</link>
-      <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/projects/003-tennis-analysis-system/</guid>
-      <description>Tennis Analysis system with YOLO, PyTorch, and Key Point Extraction.</description>
-    </item>
-    <item>
       <title>WideResNet Explained</title>
       <link>http://localhost:1313/papers/wideresnet/</link>
       <pubDate>Thu, 05 Sep 2024 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/papers/wideresnet/</guid>
       <description>WideResNet Model Explained.</description>
-    </item>
-    <item>
-      <title>Aero Engine Blade Anomaly Detection</title>
-      <link>http://localhost:1313/projects/002-aeroblade-detection/</link>
-      <pubDate>Thu, 29 Aug 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/projects/002-aeroblade-detection/</guid>
-      <description>Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network.</description>
     </item>
     <item>
       <title>Receptive Fields</title>

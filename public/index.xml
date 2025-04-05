@@ -16,6 +16,20 @@
       <description>Probability Distributions &amp;amp; their Conjugate.</description>
     </item>
     <item>
+      <title>Transformer: Attention Is All You Need</title>
+      <link>http://localhost:1313/papers/transformer/</link>
+      <pubDate>Wed, 15 Jan 2025 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/papers/transformer/</guid>
+      <description>Transformer Model Explained.</description>
+    </item>
+    <item>
+      <title>Tennis Tracking &amp; Analysis System</title>
+      <link>http://localhost:1313/projects/003-tennis-analysis-system/</link>
+      <pubDate>Sat, 14 Dec 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/003-tennis-analysis-system/</guid>
+      <description>Tennis Analysis system with YOLO, PyTorch, and Key Point Extraction.</description>
+    </item>
+    <item>
       <title>YOLO-V1: You Only Look Once: Unified, Real-Time Object Detection</title>
       <link>http://localhost:1313/papers/yolov1/</link>
       <pubDate>Tue, 03 Dec 2024 00:00:00 +0000</pubDate>
@@ -35,6 +49,13 @@
       <pubDate>Tue, 12 Nov 2024 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/kl-divergence/</guid>
       <description>KL Divergence Explained (with Derivation).</description>
+    </item>
+    <item>
+      <title>Aero Engine Blade Anomaly Detection</title>
+      <link>http://localhost:1313/projects/002-aeroblade-detection/</link>
+      <pubDate>Tue, 29 Oct 2024 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/projects/002-aeroblade-detection/</guid>
+      <description>Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network.</description>
     </item>
     <item>
       <title>ELBO: Evidence Lower Bound Optimization</title>
@@ -58,25 +79,11 @@
       <description>BCE and CE Loss Explained.</description>
     </item>
     <item>
-      <title>Tennis Tracking &amp; Analysis System</title>
-      <link>http://localhost:1313/projects/003-tennis-analysis-system/</link>
-      <pubDate>Sat, 14 Sep 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/projects/003-tennis-analysis-system/</guid>
-      <description>Tennis Analysis system with YOLO, PyTorch, and Key Point Extraction.</description>
-    </item>
-    <item>
       <title>WideResNet Explained</title>
       <link>http://localhost:1313/papers/wideresnet/</link>
       <pubDate>Thu, 05 Sep 2024 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/papers/wideresnet/</guid>
       <description>WideResNet Model Explained.</description>
-    </item>
-    <item>
-      <title>Aero Engine Blade Anomaly Detection</title>
-      <link>http://localhost:1313/projects/002-aeroblade-detection/</link>
-      <pubDate>Thu, 29 Aug 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/projects/002-aeroblade-detection/</guid>
-      <description>Aero Engine Blade Defect Detection using Masked Multi-scale Reconstruction (MMR) model which utilizes a Vision Transformer and Feature Pyramid Network.</description>
     </item>
     <item>
       <title>Receptive Fields</title>

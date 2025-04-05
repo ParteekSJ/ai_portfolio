@@ -14,25 +14,25 @@
 <link rel="icon" type="image/png" sizes="192x192" href="http://localhost:1313/favicon_io//android-chrome-192x192.png">
 <link rel="apple-touch-icon" sizes="180x180" href="http://localhost:1313/favicon_io//apple-touch-icon.png">
 
-<meta name="description" content="An LSM Tree overview and Java implementation." />
+<meta name="description" content="Transformer Model Explained." />
 
 <title>
     
-    Transformer: Attention Is All You Need | Parteek Jamwal
+    Transformer: Attention Is All You Need | Parteek Jamwal ♟️
     
 </title>
 
 <link rel="canonical" href="http://localhost:1313/papers/transformer/" />
 
 <meta property="og:url" content="http://localhost:1313/papers/transformer/">
-  <meta property="og:site_name" content="Parteek Jamwal">
+  <meta property="og:site_name" content="Parteek Jamwal ♟️">
   <meta property="og:title" content="Transformer: Attention Is All You Need">
-  <meta property="og:description" content="An LSM Tree overview and Java implementation.">
+  <meta property="og:description" content="Transformer Model Explained.">
   <meta property="og:locale" content="en_us">
   <meta property="og:type" content="article">
     <meta property="article:section" content="papers">
-    <meta property="article:published_time" content="2024-11-21T00:00:00+00:00">
-    <meta property="article:modified_time" content="2024-11-21T00:00:00+00:00">
+    <meta property="article:published_time" content="2025-01-15T00:00:00+00:00">
+    <meta property="article:modified_time" content="2025-01-15T00:00:00+00:00">
     <meta property="article:tag" content="Database">
     <meta property="article:tag" content="Java">
 
@@ -48,7 +48,7 @@
 
 
 
-<link rel="stylesheet" href="/assets/combined.min.5d549282aa71faacfceb2e30934b742b30ac25d0b3a9b86aa876fd5ac00088bd.css" media="all">
+<link rel="stylesheet" href="/assets/combined.min.a872d86da0c38d0c6981ef182080231ed9cdd5bf65b9c1ef371d9f047619f216.css" media="all">
 
 
 
@@ -71,7 +71,7 @@
     
 
     <h1 class="header-title">
-        <a href="http://localhost:1313/">Parteek Jamwal</a>
+        <a href="http://localhost:1313/">Parteek Jamwal ♟️</a>
     </h1>
 
     <div class="flex">
@@ -153,12 +153,12 @@
       
       
       
-      <time datetime="2024-11-21T00:00:00&#43;00:00">November 21, 2024</time>
+      <time datetime="2025-01-15T00:00:00&#43;00:00">January 15, 2025</time>
       
 
       
       &nbsp; · &nbsp;
-      0 min read
+      16 min read
       
     </p>
 
@@ -171,14 +171,262 @@
   
   <aside class="toc">
     <p><strong>Table of contents</strong></p>
-    <nav id="TableOfContents"></nav>
+    <nav id="TableOfContents">
+  <ul>
+    <li><a href="#data-preparation">Data Preparation</a></li>
+    <li><a href="#input-embedding">Input Embedding</a></li>
+    <li><a href="#positional-encoding">Positional Encoding</a></li>
+    <li><a href="#encoder-forward-pass">Encoder Forward Pass</a></li>
+    <li><a href="#decoder-forward-pass">Decoder Forward Pass</a></li>
+    <li><a href="#projection-layer">Projection Layer</a></li>
+    <li><a href="#training-the-transformer-model">Training the Transformer Model</a></li>
+  </ul>
+</nav>
   </aside>
   
 
   
 
   <div class="single-content">
+    <!-- raw HTML omitted -->
+<figure class="float-right"><img src="/assets/papers/transformer/transformer_architecture.png"
+    alt="Transformer Architecture" width="500px" height="auto"><figcaption>
+      <p>Transformer Architecture.</p>
+    </figcaption>
+</figure>
+
+<p>In this article, I&rsquo;ll be explaining how transformer models works for the task of text translation between <code>ENG🇬🇧-ITA🇮🇹</code>. One sentence pair will be used to demonstrate how the model processes it. This should give the reader an in-depth understand of how input gets transformed as it goes through the model</p>
+<h2 id="data-preparation">Data Preparation</h2>
+<p>To train a transformer model for the task of translation between the source and target language, the source-target sentence pairs needs to be preprocessed. Suppose, we&rsquo;re performing the task of translating <strong>English</strong> sentences to <strong>Italian</strong>. Consider the following sentence pair</p>
+<ul>
+<li>&ldquo;en&rdquo; - the dog jumped over the wall</li>
+<li>&ldquo;it&rdquo; - il cane ha saltato il muro</li>
+</ul>
+<p>This data needs to be preprocessed before it gets fed to the transformer model. Before the preprocessing, we need to define some constants</p>
+<ul>
+<li><code>src_seq_len</code> - maximum length of the source language sentence that we can use as input. Sentences longer than this value get truncated.</li>
+<li><code>tgt_seq_len</code> - maximum length of the target language sentence.</li>
+</ul>
+<blockquote>
+<p>For this example, we set <code>src_seq_len</code> and <code>tgt_seq_len</code> to $20$. This ensures batch uniformity.</p>
+</blockquote>
+<ul>
+<li><code>&lt;SOS&gt;, &lt;EOS&gt;, &lt;PAD&gt;</code> - These are special tokens that indicate start of sentence, end of sentence, and padding.
+<ul>
+<li><code>&lt;SOS&gt;</code>: this token is prepended to the sequence to indicate the start of the sentence</li>
+<li><code>&lt;EOS&gt;</code>: this token is towards the end to indicate the end of the sentence</li>
+<li><code>&lt;PAD&gt;</code>: this token is used to ensure that the source and target tokenized sequence reaches the <code>src_seq_len</code> and <code>tgt_seq_len</code>, respectively.</li>
+</ul>
+</li>
+</ul>
+<p>Transformers process batches of sequences in parallel, requiring all sequences in a batch to have the same length. This is where padding (<!-- raw HTML omitted -->) comes in. Special tokens help define the start, end, and boundaries of this process.</p>
+<p>Suppose, the source and target tokenizer assign these special tokens the following IDs: <code>&lt;SOS&gt; - 0</code>, <code>&lt;EOS&gt; - 1</code> and <code>&lt;PAD&gt; - 99</code></p>
+<p>Each sentence is tokenized, i.e., each word is assigned a unique integer based on the source/target <strong>tokenizer&rsquo;s vocabulary</strong>. For the above 2 sentences, we get the following tokens</p>
+<ul>
+<li>&ldquo;en&rdquo;: the dog jumped over the wall &ndash;&gt; [5, 791, 1207, 121, 5, 726] $\in \mathbb{R}^6$</li>
+<li>&ldquo;it&rdquo; - il cane ha saltato il muro &ndash;&gt; [14, 813, 104, 5527, 14, 1326] $\in \mathbb{R}^6$</li>
+</ul>
+<p>Once we have the source and target sequence tokenized, we add the special tokens to indicate when the sentence begins and ends.</p>
+<ul>
+<li>&ldquo;en&rdquo;: <code>&lt;SOS&gt;</code> the dog jumped over the wall <code>&lt;EOS&gt;</code>: [<strong>0</strong>, 5, 791, 1207, 121, 5, 726, <strong>1</strong>] $\in \mathbb{R}^8$</li>
+<li>&ldquo;it&rdquo; - <code>&lt;SOS&gt;</code> il cane ha saltato il muro: [<strong>0</strong>, 14, 813, 104, 5527, 14, 1326] $\in \mathbb{R}^7$</li>
+</ul>
+<p>Given that the maximum source and target sequence length is 20, we need to ensure that the tokenized sequences are $\in \mathbb{R}^{20}$. This ensures that the training/inference can be performed on batched inputs as opposed to single inputs. The reason for this is primarily because sentences in batches aren&rsquo;t homogeneous (<em>different en-it pairs have differenet lengths</em>), and consequently, to perform processing on batched inputs, their tokenized sequence dimensions must be the same. Thus, 12 <code>&lt;PAD&gt;</code> tokens are added to the source sequence, and 13 <code>&lt;PAD&gt;</code> tokens are added to the target sequence. The updated tokenized representation looks as follows:</p>
+<ul>
+<li>&ldquo;en&rdquo;: <code>&lt;SOS&gt;</code> the dog jumped over the wall &lt;<code>EOS&gt;</code> <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>: [0, 5, 791, 1207, 121, 5, 726, 1, <strong>99, &hellip;, 99</strong>] $\in \mathbb{R}^{20}$</li>
+<li>&ldquo;it&rdquo; - <code>&lt;SOS&gt;</code> il cane ha saltato il muro <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>: [0, 14, 813, 104, 5527, 14, 1326, <strong>99, &hellip;, 99</strong>] $\in \mathbb{R}^{20}$</li>
+</ul>
+<p>In addition to the tokenized source and target sequence, we also create a <strong>tokenized ground truth label</strong>. The ground truth label doesn&rsquo;t contain the <code>&lt;SOS&gt;</code> token, but contains the <code>&lt;EOS&gt;</code> and <code>&lt;PAD&gt;</code> tokens. The ground truth label tensor for the above pair is created as follows:</p>
+<ul>
+<li>Adding the <code>&lt;EOS&gt;</code> token:
+<ul>
+<li>&ldquo;it&rdquo; - il cane ha saltato il muro <code>&lt;EOS&gt;</code> : [14, 813, 104, 5527, 14, 1326, <strong>1</strong>] $\in \mathbb{R}^7$</li>
+</ul>
+</li>
+<li>Adding the <code>&lt;PAD&gt;</code> tokens:
+<ul>
+<li>&ldquo;it&rdquo; - il cane ha saltato il muro <code>&lt;EOS&gt;</code> <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>  : [14, 813, 104, 5527, 14, 1326, 1, <strong>99, &hellip;, 99</strong>] $\in \mathbb{R}^{20}$</li>
+</ul>
+</li>
+</ul>
+<p>The tokenized source sequence tensor, tokenized target sequence tensor and ground truth tensor are used for training the transformer model. In addition to these sequences, we also create masks. This will be discussed in the &ldquo;Multi-Head Attention&rdquo; section.</p>
+<h2 id="input-embedding">Input Embedding</h2>
+<p>Now, we&rsquo;ll focus on the <strong>Input Embedding Layer</strong> of the model. It is a simple lookup table that stores embeddings of a fixed dictionary and size. In other words, each token (numerical representation of the word) gets assigned to a <code>d_model</code> dimensional vector. The transformer, by default, uses <code>d_model=512</code>.</p>
+<p>Given the source sequence: <code>&lt;SOS&gt;</code> the dog jumped over the wall &lt;<code>EOS&gt;</code> <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>, its tokenized representation gets mapped from $\mathbb{R}^{20} \to \mathbb{R}^{20 \times 512}$ which simply means each word is now described by a $512$-dimensional vector. The embedding vectors are randomly initialized, and are learned throughout the training process. This layer is implemented via a <code>torch.nn.Embedding</code> layer.</p>
+<h2 id="positional-encoding">Positional Encoding</h2>
+<p>Each word in the source sequence is now a vector of dimension <code>d_model=</code>$512$. These embedding vectors do not carry any positional information. Unlike traditional RNNs or LSTMs, transformers don&rsquo;t process sequences sequentially but parallelly. In simpler words, we want the model to treat terms that are &ldquo;close&rdquo; (in a semantic sense) as closer and terms that are &ldquo;distant&rdquo; as distant. This is achieved by combining the input embedding information with the positional embeddings. The positioanl encoding are created using the following formulas:
+$$
+\begin{aligned}
+&amp;PE(pos, 2i) = \sin \left( \frac{pos}{ 10000^{(2i/d_{\text{model}})}} \right) \\
+&amp;PE(pos, 2i+1) = \cos \left( \frac{pos}{ 10000^{(2i/d_{\text{model}})}} \right)
+\end{aligned}
+$$</p>
+<ul>
+<li><code>pos</code> denotes the position. Since, the maximum source and target sequence length, <code>src_seq_len</code> and <code>tgt_seq_len</code>, are 40, our <code>pos</code> parameter will range from $[1,&hellip;,40]$</li>
+<li><code>i</code> denotes the embedding dimension. Since each token is embedded into $\mathbb{R}^{512}$. Thus, $i$ ranges from  $[0,&hellip;512]$. $2i$ denotes all the even embeddings, and $2i+1$ denotes the odd embeddings.</li>
+</ul>
+<p>The Positional Encoding function can be coded as follows:</p>
+<div class="highlight"><pre tabindex="0" style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#a90d91">def</span> <span style="color:#000">getPositionEncoding</span>(<span style="color:#000">seq_len</span>, <span style="color:#000">d</span>, <span style="color:#000">n</span><span style="color:#000">=</span><span style="color:#1c01ce">10000</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Defining an empty matrix of dimensionality (max_seq_len, d_model)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#000">P</span> <span style="color:#000">=</span> <span style="color:#000">np</span><span style="color:#000">.</span><span style="color:#000">zeros</span>((<span style="color:#000">seq_len</span>, <span style="color:#000">d</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#177500"># Iterating through (0, 20)</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">for</span> <span style="color:#000">k</span> <span style="color:#000">in</span> <span style="color:#a90d91">range</span>(<span style="color:#000">seq_len</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#177500"># Iterating through the embedding dimensions (0, 512)</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a90d91">for</span> <span style="color:#000">i</span> <span style="color:#000">in</span> <span style="color:#000">np</span><span style="color:#000">.</span><span style="color:#000">arange</span>(<span style="color:#a90d91">int</span>(<span style="color:#000">d</span> <span style="color:#000">/</span> <span style="color:#1c01ce">2</span>)):
+</span></span><span style="display:flex;"><span>            <span style="color:#000">denominator</span> <span style="color:#000">=</span> <span style="color:#000">np</span><span style="color:#000">.</span><span style="color:#000">power</span>(<span style="color:#000">n</span>, <span style="color:#1c01ce">2</span> <span style="color:#000">*</span> <span style="color:#000">i</span> <span style="color:#000">/</span> <span style="color:#000">d</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#000">P</span>[<span style="color:#000">k</span>, <span style="color:#1c01ce">2</span> <span style="color:#000">*</span> <span style="color:#000">i</span>] <span style="color:#000">=</span> <span style="color:#000">np</span><span style="color:#000">.</span><span style="color:#000">sin</span>(<span style="color:#000">k</span> <span style="color:#000">/</span> <span style="color:#000">denominator</span>) <span style="color:#177500"># odd embedding indices</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#000">P</span>[<span style="color:#000">k</span>, <span style="color:#1c01ce">2</span> <span style="color:#000">*</span> <span style="color:#000">i</span> <span style="color:#000">+</span> <span style="color:#1c01ce">1</span>] <span style="color:#000">=</span> <span style="color:#000">np</span><span style="color:#000">.</span><span style="color:#000">cos</span>(<span style="color:#000">k</span> <span style="color:#000">/</span> <span style="color:#000">denominator</span>) <span style="color:#177500"># even embedding indices</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a90d91">return</span> <span style="color:#000">P</span>
+</span></span></code></pre></div><p>Each position/index is mapped to a vector of dimensionality <code>d_model</code> i.e., $\mathbb{R}^{512}$.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure class=" img-dark%23small,">
+
+    <div>
+        <img loading="lazy" alt="alt text" src="/assets/papers/transformer/pe.png#dark%23small,">
+    </div>
+
     
+</figure>
+In the following plot, the $x$-axis denotes the embedding dimension <code>i</code>, and the $y$-axis denotes the position <code>pos</code>. For each position (row in the plot), there exists a unique pattern that indicates position. The positional encoding matrix has the dimensionality of $\mathbb{R}^{\text{seqlen}\times\text{dmodel}}$, which in our case is $\mathbb{R}^{20 \times 512}$. The positional encoding matrix is concatenated to the input source embedding resulting in a $\in \mathbb{R}^{20 \times 512}$ tensor.</p>
+<h2 id="encoder-forward-pass">Encoder Forward Pass</h2>
+<p>The source input embedding concatenated with the positional encoding matrix gets fed into the Encoder Block. The encoder block can be divided into 2 main parts:</p>
+<ol>
+<li>Multi-Head Attention + Add &amp; Norm</li>
+<li>Feed Forward + Add &amp; Norm</li>
+</ol>
+<p>We&rsquo;ll first talk about Multi-Head Attention. Three different weight matrices of dimensionality (<code>d_model</code> * <code>d_model</code>) are defined</p>
+<ul>
+<li>$W_Q \in \mathbb{R}^{512 \times 512}$</li>
+<li>$W_K \in \mathbb{R}^{512 \times 512}$</li>
+<li>$W_V \in \mathbb{R}^{512 \times 512}$</li>
+</ul>
+<p>These weight matrices implemented as <code>torch.nn.Linear</code> layers are applied on the concatenated input embedding tensor $\mathbf{x}\in\mathbb{R}^{20\times 512}$ to generate the query $Q \in \mathbb{R}^{20\times 512}$, keys $K \in \mathbb{R}^{20\times 512}$ and values $V \in \mathbb{R}^{20\times 512}$. The attention operation is performed as follows: $$ \text{Attention}(Q, K, V) = \text{softmax}\left( \frac{QK^T}{\sqrt{d_k}}  \right)V $$</p>
+<p>Instead of performing a single attention function with $Q \in \mathbb{R}^{20\times 512}$, $K \in \mathbb{R}^{20\times 512}$, and $V \in \mathbb{R}^{20\times 512}$, the authors found it beneficial to linearly project the queries, keys and values $h$ times with different, learned linear projections to $d_k$ , $d_k$ and $d_v$ dimensions, respectively. We define a hyperparameter <code>num_heads = 8</code>. Practically, we take the linearly projected $Q \in \mathbb{R}^{20\times 512}$, $Q \in \mathbb{R}^{20\times 512}$, and $V \in \mathbb{R}^{20\times 512}$, and rewrite them  as follows: $$ \begin{align*} Q\in \mathbb{R}^{20\times 512} \equiv \mathbb{R}^{20\times 8 \times 64} \equiv \mathbb{R}^{8\times 20 \times 64} \\ K \in \mathbb{R}^{20\times 512} \equiv \mathbb{R}^{20\times 8 \times 64} \equiv \mathbb{R}^{8\times 20 \times 64} \\ V\in \mathbb{R}^{20\times 512} \equiv \mathbb{R}^{20\times 8 \times 64} \equiv \mathbb{R}^{8\times 20 \times 64}  \end{align*}$$</p>
+<p>This is equivalent to &ldquo;<strong>linearly project the queries, keys and values $h$ times with different, learned linear projections to $d_k$ , $d_k$ and $d_v$ dimensions, respectively</strong>&rdquo;. The dimensionality $\mathbb{R}^{8\times 20 \times 64}$ can be interpreted as follows:</p>
+<ul>
+<li><code>20</code> denotes the (maximum) sequence length.</li>
+<li><code>8</code> denotes the number of attention heads, i.e., $h$.</li>
+<li><code>64</code> denotes the embedding dimension per head, i.e., $d_\text{model} / h =  d_k = d_v$</li>
+</ul>
+<blockquote>
+<p>Each head has access to the entire sequence, but only a subset of the embedding.</p>
+</blockquote>
+<p>The MultiHead Attention is defined as follows: $$ \begin{align*} \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \dots, \text{head}_h) W_O \\ \text{where} \text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V) \end{align*}$$</p>
+<p>In code, we perform</p>
+<ol>
+<li>Perform $QK^T$ which simply is $\mathbb{R}^{8\times 20 \times 64} \times \mathbb{R}^{8\times 64 \times 20}$ yielding $\mathbb{R}^{8\times 20 \times 20}$ matrix. For each head, we have a <code>(seq_len, seq_len)</code> matrix signifying the unnormalized attention scores.</li>
+<li>Divide by $\sqrt{d_k}$ where $d_k = d_{\text{model}} / h = 512/8=64$. This is to avoid the problem of internal covariate shift, i.e., when the gradients become too small resulting in no learning being performed.</li>
+</ol>
+<p>Before, we apply the softmax operation to compute the normalized attention scores, a mask is created to ensure that no attention is paid to <code>&lt;PAD&gt;</code> tokens. Practically, this is done by setting all <code>&lt;PAD&gt;</code> tokens in the resultant $QK^T/\sqrt{d_k} \in \mathbb{R}^{8\times 20\times 20}$ to a value of $-\infty$.</p>
+<p>To recap, our source sequence looks as follows:</p>
+<ul>
+<li>&ldquo;en&rdquo;: <code>&lt;SOS&gt;</code> the dog jumped over the wall &lt;<code>EOS&gt;</code> <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>: [0, 5, 791, 1207, 121, 5, 726, 1, <strong>99, &hellip;, 99</strong>] $\in \mathbb{R}^{20}$.</li>
+</ul>
+<p>A mask should be generated such as all tokens with the <code>ID=99</code> aren&rsquo;t paid any attention. Hence, our source language sequence mask looks as follows:
+<figure><img src="/assets/papers/transformer/attn_masks_src.png"
+    alt="Image description"><figcaption>
+      <p>Transformer Architecture.</p>
+    </figcaption>
+</figure>
+</p>
+<p>The left image shows the output of $QK^T/\sqrt{d_k}$. The right image shows the mask being applied to $QK^T/\sqrt{d_k}$. Once we have the mask applied, we compute the softmax on the resultant matrix $\mathbb{R}^{8\times 20 \times 20}$ over the last dimension giving us a distribution of attention scores for each token. All scores for each row add up to 1.</p>
+<p>Once softmax is applied, the $\text{softmax}(QK^T/\sqrt{d_k})$ matrix, it is multiplied with the value matrix resulting in $\mathbb{R}^{8\times 20 \times 20} \to \mathbb{R}^{8\times 20 \times 64}$ output. Now that the attention operation is computed for all the heads, we perform concatenate them, i.e., $\text{Concat}(\text{head}_1, \dots, \text{head}_h)$.</p>
+<p>Practically, we do this by reshaping the resultant tensor as follows: $$ \mathbb{R}^{8\times 20\times 64} \to \mathbb{R}^{20\times 8\times 64} \to \mathbb{R}^{20\times 512} $$
+Lastly, the resultant matrix is multiplied by a matrix $W_O \in \mathbb{R}^{512\times 512}$ resulting in an output of $\mathbb{R}^{20\times 512}$. This is the output of the Multi-Head Self Attention.</p>
+<p>We then have the Add &amp; Norm block where we concatenate the output of the MHSA with the original input to the MHSA block, and then perform Layer Normalization.</p>
+<p>Now, we&rsquo;ll move onto the Feed Forward + Add &amp; Norm block. A Position-wise Feed-Forward Networks layer consisting of two linear transformations with a ReLU activation in between is defined. This FFN is applied to each position separately and identically. $$ \text{FFN}(x) = \max(0, xW_1 + b1)W_2 + b_2 $$</p>
+<p>These layers can also be viewed as as two convolutions with kernel size 1. In code, these layers are described as <code>torch.nn.Linear</code> layers with the input and output dimensionality being <code>d_model=512</code>, and the inner-layer has dimensionality being <code>d_ff=2048</code>. The resultant output of this FFN block is $\mathbb{R}^{20\times 512}$. This is then fed to the Add &amp; Norm block where we first perform a residual connection, i.e., the output of the FFN block is concatenated with the original input ot the FFN block. All this is then passed throufh a <code>LayerNorm</code> layer. The resultant output of this stack is $\mathbb{R}^{20\times 512}$.</p>
+<p>Suppose, if <code>num_encoder_blocks=6</code>, i.e., we have 6 encoder blocks, this operation is repeated and the dimensionality of the final output that we get from the encoder is $\mathbb{R}^{20\times 512}$.</p>
+<hr>
+<p>The &ldquo;Output Embedding&rdquo; and &ldquo;Positional Encoding&rdquo; is similar to what we discussed above.</p>
+<h2 id="decoder-forward-pass">Decoder Forward Pass</h2>
+<p>The target output embedding concatenated with the positional encoding matrix gets fed into the Decoder Block. The encoder block can be divided into 3 main parts:</p>
+<ol>
+<li>Masked Multi-Head Attention + Add &amp; Norm</li>
+<li>Multi-Head Attention + Add &amp; Norm</li>
+<li>Feed Forward + Add &amp; Norm</li>
+</ol>
+<p>To recap, our target sequence is as follows: &ldquo;it&rdquo; - il cane ha saltato il muro <code>&lt;EOS&gt;</code> <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>  : [14, 813, 104, 5527, 14, 1326, 1, <strong>99, &hellip;, 99</strong>] $\in \mathbb{R}^{20}$. This goes through the output embedding layer converting it from $\mathbb{R}^{20} \to \mathbb{R}^{20 \times 512}$. Finally, a positional encoding matrix is generated and concatenated resulting in a $\mathbb{R}^{20 \times 512}$ matrix.</p>
+<p>This get fed into the decoder block. The first module of the decoder block is the <strong>Masked Multi-head Attention</strong>. Similar to the MHSA module in the encoder, three different weight matrices of dimensionality (<code>d_model</code> * <code>d_model</code>) are defined</p>
+<ul>
+<li>$W_Q \in \mathbb{R}^{512 \times 512}$</li>
+<li>$W_K \in \mathbb{R}^{512 \times 512}$</li>
+<li>$W_V \in \mathbb{R}^{512 \times 512}$</li>
+</ul>
+<p>These weight matrices implemented as <code>torch.nn.Linear</code> layers are applied on the concatenated output embedding tensor $\mathbf{x}\in\mathbb{R}^{20\times 512}$ to generate the query $Q \in \mathbb{R}^{20\times 512}$, keys $K \in \mathbb{R}^{20\times 512}$ and values $V \in \mathbb{R}^{20\times 512}$. Instead of using the entire <code>d_model</code> dimension to compute the dot-product scaled attention, we perform multi-head attention where queries, keys and values are linearly projected $h$ times with different, learned linear projections to $d_k$ , $d_k$ and $d_v$.  Practically, we take the linearly projected $Q \in \mathbb{R}^{20\times 512}$, $Q \in \mathbb{R}^{20\times 512}$, and $V \in \mathbb{R}^{20\times 512}$, and rewrite them  as follows: $$ \begin{align*} Q\in \mathbb{R}^{20\times 512} \equiv \mathbb{R}^{20\times 8 \times 64} \equiv \mathbb{R}^{8\times 20 \times 64} \\ K \in \mathbb{R}^{20\times 512} \equiv \mathbb{R}^{20\times 8 \times 64} \equiv \mathbb{R}^{8\times 20 \times 64} \\ V\in \mathbb{R}^{20\times 512} \equiv \mathbb{R}^{20\times 8 \times 64} \equiv \mathbb{R}^{8\times 20 \times 64}  \end{align*}$$</p>
+<p>Masked Multi-Head Attention is computed as follows:</p>
+<ol>
+<li>Perform $QK^T$ which simply is $\mathbb{R}^{8\times 20 \times 64} \times \mathbb{R}^{8\times 64 \times 20}$ yielding $\mathbb{R}^{8\times 20 \times 20}$ matrix. For each head, we have a <code>(seq_len, seq_len)</code> matrix signifying the unnormalized attention scores.</li>
+<li>Divide by $\sqrt{d_k}$ where $d_k = d_{\text{model}} / h = 512/8=64$. This is to avoid the problem of internal covariate shift, i.e., when the gradients become too small resulting in no learning being performed.</li>
+</ol>
+<p>Before, we apply the softmax operation to compute the normalized attention scores, a specialized mask is created to ensure</p>
+<ul>
+<li>each token can pay attention to the tokens that&rsquo;ve already appeared before it.</li>
+<li>each <code>&lt;PAD&gt;</code>is ignored</li>
+</ul>
+<p>To recap, our target sequence looks as follows:</p>
+<ul>
+<li>&ldquo;it&rdquo; - <code>&lt;SOS&gt;</code> il cane ha saltato il muro <code>&lt;PAD&gt;</code> &hellip; <code>&lt;PAD&gt;</code>: [0, 14, 813, 104, 5527, 14, 1326, <strong>99, &hellip;, 99</strong>] $\in \mathbb{R}^{20}$</li>
+</ul>
+<p>Hence, our target language sequence mask applied looks as follows:
+<figure><img src="/assets/papers/transformer/decoder_masks_tgt.png"
+    alt="Image description"><figcaption>
+      <p>Masked Multi-Head Attention.</p>
+    </figcaption>
+</figure>
+</p>
+<p>As you can see the generated mask ensures that all tokens with the <code>ID=99</code>, i.e., <code>&lt;PAD&gt;</code> aren&rsquo;t paid any attention. In addition, a token can only compute attention with the tokens that&rsquo;ve appeared before it. For example, token <code>813</code> can compute the scaled dot product with tokens <code>0</code> and <code>14</code>.</p>
+<p>Once we have the mask applied, we compute the softmax on the resultant matrix $\mathbb{R}^{8\times 20 \times 20}$ over the last dimension giving us a distribution of attention scores for each token. All scores for each row add up to 1.</p>
+<p>Once softmax is applied, the $\text{softmax}(QK^T/\sqrt{d_k})$ matrix, it is multiplied with the value matrix, $V\in\mathbb{R}^{8\times64}$ resulting in $\mathbb{R}^{8\times 20 \times 20} \to \mathbb{R}^{8\times 20 \times 64}$ output. Now that the attention operation is computed for all the heads, we perform concatenate them, i.e., $\text{Concat}(\text{head}_1, \dots, \text{head}_h)$. Practically, we do this by reshaping the resultant tensor as follows: $$ \mathbb{R}^{8\times 20\times 64} \to \mathbb{R}^{20\times 8\times 64} \to \mathbb{R}^{20\times 512} $$
+Lastly, the resultant matrix is multiplied by a matrix $W_O \in \mathbb{R}^{512\times 512}$ resulting in an output of $\mathbb{R}^{20\times 512}$. This is the output of the Multi-Head Self Attention.</p>
+<p>Now, we perform Cross Attention where query from the decoder, and keys and value from the last encoder block&rsquo;s output.
+<figure><img src="/assets/papers/transformer/crossattn.png"
+    alt="Image description"><figcaption>
+      <p>Cross Attention.</p>
+    </figcaption>
+</figure>
+</p>
+<p>It is similar to the above where the query comes from the output of the Masked-MHSA module, and keys and value from the last encoder block&rsquo;s output. The output of the cross attention block is $\mathbb{R}^{20\times 512}$. This gets fed to the Position Wise FFN that consists of 2 linear layers described as follows: $$ \text{FFN}(x) = \max(0, xW_1 + b1)W_2 + b_2 $$</p>
+<p>The output of this module is $ \mathbb{R}^{20\times 512} $</p>
+<h2 id="projection-layer">Projection Layer</h2>
+<p>Finally, the output from the final decoder layer is transformed into a vector of vocabulary size, i.e., <code>d_vocab</code>. Then, a softmax is applied over this vector of size $d_{vocab}$, resulting in a probability distribution over all the words in the vocabulary. The Projection Layer is simply a linear layer that maps the final decoder output $$ \mathbb{R}^{20\times 512} \to \mathbb{R}^{20\times d_\text{vocab}}$$ . The projection layer is implemented as a <code>torch.nn.Linear</code> layer.</p>
+<p>Using a decoding strategy such as Greedy Decoding or Beam Search, we can pick the next word of the decoder sequence.</p>
+<h2 id="training-the-transformer-model">Training the Transformer Model</h2>
+<p>Let us recap on the structure of the source language sequence, target language sequence, and ground truth label sequence.</p>
+<ul>
+<li>Source Language Sentences have the following structure: <code>&lt;SOS&gt; content &lt;EOS&gt; &lt;PAD&gt; ... &lt;PAD&gt;</code>.</li>
+<li>Target Language Sentences have the following structure: <code>&lt;SOS&gt; content &lt;PAD&gt; ... &lt;PAD&gt;</code>. As you can see, it doesn&rsquo;t contain the <code>&lt;EOS&gt;</code> token.</li>
+</ul>
+<p>The decoder starts generating the target sentence from the <code>&lt;SOS&gt;</code> token. During training, the decoder is fed the target sequence shifted right (i.e., starting with <code>&lt;SOS&gt;</code>), and it predicts the next token at each step. For example, if the target is &ldquo;<strong>il cane ha saltato il muro</strong>&rdquo;, the input to the decoder begins with <code>&lt;SOS&gt;</code> to predict &ldquo;<strong>il</strong>&rdquo;.</p>
+<ul>
+<li>Ground Truth Sequence have the following structure: <code>content &lt;EOS&gt; &lt;PAD&gt; ... &lt;PAD&gt;</code>.</li>
+</ul>
+<p>The ground truth sequence doesn&rsquo;t contain the <code>&lt;SOS&gt;</code> token, but contains the <code>&lt;EOS&gt;</code> token. This is what the decoder should predict at the final step of generation. During training, the model compares its predictions to this ground truth, and <!-- raw HTML omitted --> signals when to stop.</p>
+<blockquote>
+<p>During training, the decoder uses <strong>teacher forcing</strong>: it’s fed the ground truth sequence (shifted right) as input to predict the next token.</p>
+</blockquote>
+<p>Transformer model&rsquo;s output is $\mathbb{R}^{20\times d_\text{vocab}}$. The cross entropy loss is used to backpropagate gradients which causes the transformer model to learn inherent patterns between the source and language text.</p>
+<ul>
+<li>The transformer&rsquo;s final model output is $\mathbb{R}^{20\times d_\text{vocab}}$ where $20$ represents the sequence length, and $d_\text{vocab}$ represents the vocabulary size. In other words, we have a distribution $\in\mathbb{R}^{d_\text{vocab}}$ over all of the 20 tokens.</li>
+<li>The ground truth label has the dimensionality $\mathbb{R}^{20}$.</li>
+</ul>
+<p>The loss is computed using the <code>torch.nn.CrossEntropy</code> function. It quantifies how well the model predicts the next token.</p>
+<hr>
+<p>I hope this article helps you get a better understanding of how the transformer model is used for seq2seq translation task. The code can be found on: <a href="https://github.com/ParteekSJ/transformer-scratch">https://github.com/ParteekSJ/transformer-scratch</a></p>
+
     
   </div>
 
@@ -209,15 +457,6 @@
         </div>
 
         <div class="single-pagination-next">
-            
-            <div class="single-pagination-container-next">
-                <div class="single-pagination-text">
-                    <a href="/papers/vit/">
-                        An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale
-                    </a>
-                </div>
-                <div class="single-pagination-text">→</div>
-            </div>
             
         </div>
 
